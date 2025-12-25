@@ -1,0 +1,28 @@
+.table-background {
+  background-image: url('../assets/table2.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+	border-width: 10px;
+	border-color: rgb(75, 60, 48);
+	border-radius: 10px;
+	width: 900;
+	display: flex;
+	align-items: center;;
+}
+
+.table-wrapper {
+  width: 900px;          /* MUST match visual table */
+  margin: 0 auto;         /* center horizontally */
+  padding: 0px 0px;     /* inner breathing room */
+  display: flex;
+  justify-content: center;
+}
+
+.table-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, auto);
+  gap: 110px 30px;
+}

@@ -1,0 +1,168 @@
+@import "tailwindcss";
+
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  width: 100%;
+  margin: 0;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --color-deep-walnut-50: #f8f2ed;
+  --color-deep-walnut-100: #f0e6db;
+  --color-deep-walnut-200: #e1ccb7;
+  --color-deep-walnut-300: #d3b392;
+  --color-deep-walnut-400: #c4996e;
+  --color-deep-walnut-500: #b5804a;
+  --color-deep-walnut-600: #91663b;
+  --color-deep-walnut-700: #6d4d2c;
+  --color-deep-walnut-800: #48331e;
+  --color-deep-walnut-900: #241a0f;
+  --color-deep-walnut-950: #19120a;
+
+  --color-dark-coffee-50: #f9f2ec;
+  --color-dark-coffee-100: #f3e5d8;
+  --color-dark-coffee-200: #e6cbb2;
+  --color-dark-coffee-300: #dab18b;
+  --color-dark-coffee-400: #cd9765;
+  --color-dark-coffee-500: #c17d3e;
+  --color-dark-coffee-600: #9a6432;
+  --color-dark-coffee-700: #744b25;
+  --color-dark-coffee-800: #4d3219;
+  --color-dark-coffee-900: #27190c;
+  --color-dark-coffee-950: #1b1209;
+
+  --color-ash-grey-50: #f1f4f2;
+  --color-ash-grey-100: #e2e9e6;
+  --color-ash-grey-200: #c5d3cd;
+  --color-ash-grey-300: #a9bcb3;
+  --color-ash-grey-400: #8ca69a;
+  --color-ash-grey-500: #6f9081;
+  --color-ash-grey-600: #597367;
+  --color-ash-grey-700: #43564d;
+  --color-ash-grey-800: #2c3a34;
+  --color-ash-grey-900: #161d1a;
+  --color-ash-grey-950: #101412;
+
+  --color-wheat-50: #f9f5eb;
+  --color-wheat-100: #f3ebd8;
+  --color-wheat-200: #e8d6b0;
+  --color-wheat-300: #dcc289;
+  --color-wheat-400: #d0ad62;
+  --color-wheat-500: #c4993b;
+  --color-wheat-600: #9d7a2f;
+  --color-wheat-700: #765c23;
+  --color-wheat-800: #4f3d17;
+  --color-wheat-900: #271f0c;
+  --color-wheat-950: #1b1508;
+
+  --color-stone-brown-50: #f4f3f0;
+  --color-stone-brown-100: #eae7e1;
+  --color-stone-brown-200: #d4cfc4;
+  --color-stone-brown-300: #bfb7a6;
+  --color-stone-brown-400: #a9a089;
+  --color-stone-brown-500: #94886b;
+  --color-stone-brown-600: #766d56;
+  --color-stone-brown-700: #595140;
+  --color-stone-brown-800: #3b362b;
+  --color-stone-brown-900: #1e1b15;
+  --color-stone-brown-950: #15130f;
+
+  --color-soft-fawn-50: #f8f4ed;
+  --color-soft-fawn-100: #f0e9db;
+  --color-soft-fawn-200: #e1d2b7;
+  --color-soft-fawn-300: #d3bc92;
+  --color-soft-fawn-400: #c4a66e;
+  --color-soft-fawn-500: #b5904a;
+  --color-soft-fawn-600: #91733b;
+  --color-soft-fawn-700: #6d562c;
+  --color-soft-fawn-800: #48391e;
+  --color-soft-fawn-900: #241d0f;
+  --color-soft-fawn-950: #19140a;
+
+  --color-dim-grey-50: #f1f3f3;
+  --color-dim-grey-100: #e4e7e7;
+  --color-dim-grey-200: #c9cfcf;
+  --color-dim-grey-300: #aeb7b6;
+  --color-dim-grey-400: #939f9e;
+  --color-dim-grey-500: #788786;
+  --color-dim-grey-600: #606c6b;
+  --color-dim-grey-700: #485150;
+  --color-dim-grey-800: #303636;
+  --color-dim-grey-900: #181b1b;
+  --color-dim-grey-950: #111313;
+
+  --color-faded-copper-50: #f5f3ef;
+  --color-faded-copper-100: #ece7df;
+  --color-faded-copper-200: #d9cfbf;
+  --color-faded-copper-300: #c6b69f;
+  --color-faded-copper-400: #b39e80;
+  --color-faded-copper-500: #9f8660;
+  --color-faded-copper-600: #806b4d;
+  --color-faded-copper-700: #605039;
+  --color-faded-copper-800: #403626;
+  --color-faded-copper-900: #201b13;
+  --color-faded-copper-950: #16130d;
+
+  --color-jet-black-50: #f1f4f4;
+  --color-jet-black-100: #e2e9e9;
+  --color-jet-black-200: #c6d2d2;
+  --color-jet-black-300: #a9bcbc;
+  --color-jet-black-400: #8da5a5;
+  --color-jet-black-500: #708f8f;
+  --color-jet-black-600: #5a7272;
+  --color-jet-black-700: #435656;
+  --color-jet-black-800: #2d3939;
+  --color-jet-black-900: #161d1d;
+  --color-jet-black-950: #101414;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;  
+}
+
+h1 {
+  font-size: 3.2em;
+  line-height: 1.1;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+  a:hover {
+    color: #747bff;
+  }
+  button {
+    background-color: #f9f9f9;
+  }
+}
+
+@font-face {
+  font-family: 'Overseer';
+  src: url('/src/assets/fonts/overseer-italic.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}

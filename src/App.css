@@ -1,0 +1,31 @@
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+.title-text {
+  font-family: 'Overseer';
+  color: rgb(255, 208, 0);
+  font-size: 10rem;  
+  text-shadow:  -6px 12px 2px rgb(207, 118, 15);
+  filter: drop-shadow(0 0 10px rgb(157, 240, 243));
+}
+
+
+.game {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+

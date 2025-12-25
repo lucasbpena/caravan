@@ -1,0 +1,112 @@
+.card-root {
+  position: relative;
+  width: 90px;
+}
+
+.card-face {
+  width: 90px;
+  display: block;
+  
+}
+
+.card-attachments {
+  position: absolute;
+  top: 8px;
+  right: -15px;
+  pointer-events: none;
+}
+
+.card-attachment {
+  position: absolute;
+  width: 90px;
+  transform: rotate(8deg);
+}
+
+.attachment-face {
+  width: 100%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+}
+
+
+.card {
+  transform:
+    translateX(var(--hand-x))
+    translateY(var(--hand-y))
+    rotate(var(--hand-rot))
+    translate3d(
+      var(--drag-x, 0),
+      var(--drag-y, 0),
+      0
+    );
+
+  touch-action: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  position: absolute;
+  transition: all 0.2s ease;
+}
+
+.card.dragging {
+  cursor: grabbing;
+}
+
+.card:first-child {
+  margin-left: 0;
+}
+
+.card:hover{
+  cursor: pointer;
+  box-shadow: #12ecc899 0 8px 12px ;
+  border-color: #12ecc899;
+  border-radius: 6px;
+  border-width: 3px;
+}
+
+.caravan-card {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  pointer-events: auto;
+  padding: 4px;
+  transition: transform 0.15s ease;
+}
+
+.card-wrapper {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+
+.card-attachable:hover {
+  cursor: pointer;
+  transform: translateX(-50%) translateX(20px);
+  cursor: pointer;
+  box-shadow: #12ecc899 0px 12px 36px ;
+  border-color: #12ecc899;
+  border-radius: 8px;
+  border-width: 4px;
+  
+}
+
+.card-blocked {
+  cursor: not-allowed;
+}
+
+.card-blocked:hover {
+  box-shadow: #cf040499 0px 12px 36px ;
+  border-color: #d6070799;
+  border-radius: 8px;
+  border-width: 4px;
+}
+
+.card.blocked::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(188, 5, 5, 0.924);
+  backdrop-filter: brightness(0.7);
+  border-radius: 6px;
+  pointer-events: none;
+}
