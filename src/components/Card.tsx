@@ -1,77 +1,82 @@
 import type { Card } from '../game/types';
 import './Card.css';
 
+import { motion } from 'framer-motion';
+
+
+export function getCardDisplacement(id: string) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) {
+    hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  const rand = (min: number, max: number) =>
+    min + (Math.abs(hash) % 1000) / 1000 * (max - min);
+
+  return {
+    x: rand(-4, 4),
+    y: rand(-2, 2),
+    rotate: rand(-5, 5),
+  };
+}
+
 // Import card images
-const cardModules = import.meta.glob('../assets/vector-cards/*', { eager: true, as: 'url' });
+const cardModules = import.meta.glob('../assets/vector-cards/*', {
+  eager: true,
+  as: 'url',
+});
 
 export const cardPaths: Record<string, string> = Object.fromEntries(
-    Object.entries(cardModules).map(([path, module]) => {
+  Object.entries(cardModules).map(([path, module]) => {
     const filename = path
-			.split('/')
-			.pop()!
-			.replace(/\.\w+$/, '');
+      .split('/')
+      .pop()!
+      .replace(/\.\w+$/, '');
 
     return [filename, module];
   })
 );
 
-export const CardImageRenderer = ({ card }: { card: Card }) => {
-  return (
-    <div className="card-root">
-      <img src={cardPaths[`${card.value}_${card.suit}`]} className="card-face" />
 
-      {card.attachments && card.attachments.length > 0 && (
-        <div className="card-attachments">
-          {card.attachments.map((attachment, index) => (
-            <div
-              key={attachment.id}
-              className="card-attachment"
-              style={{
-                top: index * 6,
-                right: index * -12
-              }}
-            >
-              <img
-                src={cardPaths[`${attachment.value}_${attachment.suit}`]}
-                className="attachment-face"
-              />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+type CardViewProps = {
+  card: Card;
+  onClick?: () => void;
+  onDestroyAnimationComplete?: () => void;
 };
 
 
-type CardShellProps = {
-  card: Card;
-  selected?: boolean;
-  disabled?:boolean;
-  onClick?: () => void;
-  children: React.ReactNode;
-}
-
-export const CardShell = ({
+export const CardView = ({
   card,
-  selected,
-  disabled,
   onClick,
-  children,
-}: CardShellProps) => {
+  onDestroyAnimationComplete,
+}: CardViewProps) => {
   return (
-    <div
-      className={`
-        card-shell
-        ${selected ? 'card-selected' : ''}
-        ${disabled ? 'card-disabled' : ''}
-      `}
+    <motion.div
+      className="card"
+      layout
       onClick={(e) => {
         e.stopPropagation();
-        if (!disabled) onClick?.();
+        onClick?.();
+      }}
+      animate={
+        card.cardStatus === 'destroying'
+          ? { scale: 0.2, rotate: 20, opacity: 0 }
+          : { scale: 1, rotate: 0, opacity: 1 }
+      }
+      transition={{ duration: 3, ease: 'easeInOut' }}
+      onAnimationComplete={() => {
+        if (card.cardStatus === 'destroying') {
+          onDestroyAnimationComplete?.();
+        }
       }}
     >
-      {children}
-    </div>
+      <div className="card-root">
+        <img
+          src={cardPaths[`${card.value}_${card.suit}`]}
+          className="card-face"
+          draggable={false}
+        />
+      </div>
+    </motion.div>
   );
 };

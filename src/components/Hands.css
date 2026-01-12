@@ -1,5 +1,6 @@
 .hand {
   position: relative;
+  pointer-events: auto;
   height: 200px;
   display: flex;
   justify-content: center;

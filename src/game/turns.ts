@@ -1,15 +1,13 @@
-import { type Card, type CaravanId, type Player, createDeck } from "./types";
-
-
-import { useState } from "react";
-
-import { gameActions, type CardSelect } from "./actions";
+import { type Card, type CaravanId, type Player} from "./types";
+import { gameActions  } from "./actions";
+import { getCaravanScore, getCaravanStatus, type CaravanStatus } from "./rules";
 
 export type PlayerId = 'player' | 'enemy';
 
 export type GamePhase =
   | 'setup'
-  | 'main';
+  | 'main'
+  | 'over';
 
 
 export type TurnState = {
@@ -27,102 +25,140 @@ export interface GameState {
   caravans: Record<CaravanId, Card[]>;
 };
 
-export function useGameState() {
-	const [game, setGame] = useState<GameState>({
-		turn: {currentPlayer: 'player', phase: "setup", turnNumber: 1},
-		player: {deck: createDeck(), hand: [], discardPile: []},
-		enemy: {deck: createDeck(), hand: [], discardPile: []},
-		caravans: {
-			"p-1": [],
-			"p-2": [],
-			"p-3": [],
-			"e-1": [],
-			"e-2": [],
-			"e-3": [],
-		},
-	});
-
-	return { game, setGame };
-}
-
 export type GameAction =
-  | { type: 'PLAY_VALUE' }
-  | { type: 'PLAY_FIGURE'; cardSel: string; target: CaravanId }
-  | { type: 'DISCARD_DRAW'; cardSel: CardSelect }
-  | { type: 'DISCARD_CARAVAN'; target: CaravanId };
+  | { type: 'PLAY_CARD_TO_CARAVAN'; cardSel: Card; caravanId: CaravanId; playerId: PlayerId}
+  | { type: 'ATTACH_CARD'; cardSel: Card; targetSel: Card; caravanId: CaravanId; playerId: PlayerId}
+  | { type: 'DISCARD_DRAW'; cardSel: Card; playerId: PlayerId }
+  | { type: 'DISCARD_CARAVAN'; caravanId: CaravanId }
+  | { type: 'REMOVE_DESTROYED_CARDS'};
 
 
 const allowedActions: Record<GamePhase, GameAction['type'][]> = {
-  setup: ['PLAY_VALUE'],
-  main: ['PLAY_VALUE', 'PLAY_FIGURE', 'DISCARD_DRAW', 'DISCARD_CARAVAN'],
+  setup: ['PLAY_CARD_TO_CARAVAN'],
+  main: ['PLAY_CARD_TO_CARAVAN', 'ATTACH_CARD', 'DISCARD_DRAW', 'DISCARD_CARAVAN'],
+  over: [],
+};
+
+const phaseOrder: GamePhase[] = ['setup', 'main', 'over'];
+
+function advanceTurn(game: GameState): GameState {
+  const nextPlayer = game.turn.currentPlayer === 'player' ? 'enemy' : 'player';
+
+  if (game.turn.phase === 'setup') {
+    if (Object.values(game.caravans).every(caravan => caravan.length > 0)) {
+      return {
+        ...game,
+        turn: {
+          currentPlayer: nextPlayer,
+          phase: 'main',
+          turnNumber: game.turn.turnNumber + 1,
+        },
+      };
+  
+    }
+  } 
+  return {
+    ...game,
+    turn: {
+      currentPlayer: nextPlayer,
+      phase: game.turn.phase,
+      turnNumber: game.turn.turnNumber + 1,
+    },
+  };
+}
+
+export const isGameOver = (game: GameState): boolean => {
+  let playerSold = 0;
+  let enemySold = 0;
+
+  for (let i = 1; i <= 3; i++) {
+    const playerId = `p-${i}` as CaravanId;
+    const enemyId = `e-${i}` as CaravanId;
+
+    const playerScore = getCaravanScore(game.caravans[playerId]);
+    const enemyScore = getCaravanScore(game.caravans[enemyId]);
+
+    const playerStatus = getCaravanStatus(playerScore, enemyScore);
+    const enemyStatus = getCaravanStatus(enemyScore, playerScore);
+
+    if (playerStatus === 'sold') playerSold++;
+    if (enemyStatus === 'sold') enemySold++;
+  }
+
+  return playerSold >= 2 || enemySold >= 2;
 };
 
 
+// Game Reducer
 export function gameReducer(
   game: GameState,
   action: GameAction,
-	cardSel: CardSelect,
-	targetSel: CardSelect | CaravanId
 ): GameState {
-  const { phase } = game.turn;
-
-  if (!allowedActions[phase].includes(action.type)) {
-    return game; // illegal action
-  }
+  const phase = game.turn.phase;
 
   switch (action.type) {
-    case 'DISCARD_DRAW': {
-			const playerAfterDiscard = gameActions.discardCard(game.player, cardSel);
-			const playerAfterDraw = gameActions.drawCard(playerAfterDiscard);
 
-			return {
-				...game,
-				player: playerAfterDraw,
-			};
-		}		
-		case 'PLAY_VALUE': {
-			gameActions.playCardToCaravan(game, cardSel, targetSel as CaravanId)
-			return game
-		}
-		case 'PLAY_FIGURE': {
-			return game
-		}
-		case 'DISCARD_CARAVAN': {
-			return game
-		}
+    case 'PLAY_CARD_TO_CARAVAN': {
+      const gameChange = gameActions.playCardToCaravan(
+          game,
+          action.cardSel.id,
+          action.caravanId,
+          action.playerId
+        );
+      if (phase === 'setup') {
+        
+        const caravans = [
+          gameChange.caravans[`${action.playerId[0]}-1` as CaravanId],
+          gameChange.caravans[`${action.playerId[0]}-2` as CaravanId],
+          gameChange.caravans[`${action.playerId[0]}-3` as CaravanId],
+        ]
+
+        if (caravans[0].length > 0 && caravans[1].length > 0 && caravans[2].length > 0 ) {
+          return advanceTurn(gameChange)
+
+        } else {
+          return gameChange
+        }           
+      } else {
+        return advanceTurn(gameChange);
+      }
+    }      
+    
+    case 'ATTACH_CARD': {
+      if (phase !== 'main') return game;
+
+      const gameChange = gameActions.attachCardToCard(
+        game,
+        action.cardSel.id,
+        action.targetSel.id,
+        action.playerId
+      );
+
+      return advanceTurn(gameChange)
+    }
+
+    case 'DISCARD_DRAW': {
+      //if (phase !== 'main') return game;
+
+      const gameChange = gameActions.discardAndDraw(game, action.playerId, action.cardSel.id);      
+
+      return advanceTurn(gameChange);
+    }
+
+    case 'REMOVE_DESTROYED_CARDS': {
+      return {
+        ...game,
+        caravans: Object.fromEntries(
+          Object.entries(game.caravans).map(([id, cards]) => [
+            id,
+            cards.filter(card => card.cardStatus !== 'destroying')
+          ])
+        )
+      };
+    }
+
+
     default:
       return game;
   }
 }
-
-const phaseOrder: GamePhase[] = ['setup', 'main'];
-
-function advancePhase(state: GameState): GameState {
-  const index = phaseOrder.indexOf(state.turn.phase);
-  const nextPhase = phaseOrder[index + 1];
-
-  if (!nextPhase) return state;
-
-  return {
-    ...state,
-    turn: {
-      ...state.turn,
-      phase: nextPhase,
-    },
-  };
-}
-
-function nextTurn(state: GameState): GameState {
-  const nextPlayer =
-    state.turn.currentPlayer === 'player' ? 'enemy' : 'player';
-
-  return {
-    ...state,
-    turn: {
-      currentPlayer: nextPlayer,
-      phase: 'setup',
-      turnNumber: state.turn.turnNumber + 1,
-    },
-  };
-}
-

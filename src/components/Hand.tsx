@@ -1,63 +1,53 @@
-import { cardPaths, CardShell } from './Card';
-import type { Card } from '../game/types';
-import type { CardSelect } from '../game/actions';
+import { AnimatePresence, motion, type MotionStyle } from 'framer-motion';
 import './Hands.css';
 
+import { CardView } from './Card';
+import type { Card } from '../game/types';
 
 type HandProps = {
   hand: Card[];
-  onCardSelect?: (selection: CardSelect) => void;
-  cardSelection: CardSelect;
-}
+  onCardSelect: (selection: Card | null) => void;
+  cardSel: Card | null;
+};
 
-export const Hand = ({ hand, onCardSelect, cardSelection }: HandProps) => {
-
-  function getCardStyle(
+export const Hand = ({ hand, onCardSelect, cardSel }: HandProps) => {
+  function getCardMotion(
     index: number,
     isActive: boolean,
-    total: number,
-  ) {
+    total: number
+  ): MotionStyle {
     const center = (total - 1) / 2;
     const offset = index - center;
     const depth = total - Math.abs(offset);
 
     return {
-      '--hand-x': `${offset * 80}px`,
-      '--hand-y': `${isActive ? -40 : Math.abs(offset) * 6}px`,
-      '--hand-rot': `${offset * 4}deg`,
+      x: offset * 80,
+      y: isActive ? -50 : Math.abs(offset) * 6,
+      rotate: offset * 4,
       zIndex: 100 + depth,
-      filter: isActive
-        ? 'drop-shadow(0 8px 12px rgba(18, 236, 200, 0.8))'
-        : 'none',
-    } as React.CSSProperties;
-  }  
-	
-	return (
+    };
+  }
+
+  return (
     <div className="hand">
       {hand.map((card, i) => {
-          const isActive = card.id === cardSelection?.card.id;
+        const isActive = card.id === cardSel?.id;
 
-          return (
-            <CardShell
-              key={card.id}
-              card={card}
-              onClick={() => {
-                onCardSelect?.({ card, origin: 'player-hand' });
-              }}
-            >
-              <div
-                className="card"
-                style={getCardStyle(i, isActive, hand.length)}
-              >
-                <img
-                  src={cardPaths[`${card.value}_${card.suit}`]}
-                  className="w-30"
-                />
-              </div>
-            </CardShell>
-          );
-        })}
-
+        return (
+          <motion.div
+            key={card.id}
+            style={getCardMotion(i, isActive, hand.length)}
+            animate={{
+              scale: isActive ? 1.1 : 1,
+              filter: isActive
+                ? 'drop-shadow(0 10px 14px rgba(18,236,200,0.8))'
+                : 'none',
+            }}
+          >
+            <CardView card={card} onClick={() => onCardSelect(card)} />
+          </motion.div>          
+        );
+      })}
     </div>
-	);
-}
+  );
+};

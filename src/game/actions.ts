@@ -1,99 +1,243 @@
-import { type Card, type Player, type CaravanId, isFaceCard } from './types';
-import { type GameState } from './turns';
+import { type Card, type CaravanId } from './types';
+import { type GameState, type PlayerId } from './turns';
 
-export type CardSelect = {
-  card: Card;
-  origin: 'player-hand' | 'enemy-hand' | CaravanId;
-} | null;
+// Find card location helper
+export function findCardLocation(
+  game: GameState,
+  cardId: string
+): CaravanId | PlayerId | null {
+  // Search caravans
+  for (const [caravanId, cards] of Object.entries(game.caravans)) {
+    const card = cards.find(c => c.id === cardId);
+    if (card) {
+      return caravanId as CaravanId
+      };
+    }
+  // Search player hands
+  const players: PlayerId[] = ['player', 'enemy'];
 
+  for (const playerId of players) {
+    const card = game[playerId].hand.find(c => c.id === cardId);
+    if (card) {
+      return playerId as PlayerId;
+    }
+  }
+
+  return null;
+}
+
+// Joker effect helper
+function applyJokerEffectGlobal(
+  caravans: GameState['caravans'],
+  targetCard: Card,
+  joker: Card
+): GameState['caravans'] {
+  const nextCaravans: GameState['caravans'] = {} as any;
+
+  for (const [caravanId, cards] of Object.entries(caravans)) {
+    nextCaravans[caravanId as CaravanId] = cards.map(card => {
+
+      // TARGET CARD: survives, but keeps the Joker attached
+      if (card.id === targetCard.id) {
+        return {
+          ...card,
+          attachments: [...(card.attachments ?? []), joker],
+        };
+      }
+
+      // Determine match rule
+      const matches =
+        targetCard.value === 1
+          ? card.suit === targetCard.suit        // Ace → suit wipe
+          : card.value === targetCard.value;     // Value wipe
+
+      if (!matches || card.cardStatus === 'destroying') {
+        return card;
+      }
+
+      // Destroy matched cards
+      return {
+        ...card,
+        cardStatus: 'destroying',
+        attachments: [...(card.attachments ?? []), joker],
+      };
+    });
+  }
+
+  return nextCaravans;
+}
+
+export type HoverTarget =
+  | { type:'caravan'; owner: PlayerId; caravanId: CaravanId }
+  | { type: 'placed'; owner: PlayerId; card: Card; caravanId: CaravanId }
+  | { type: 'deck'};
+
+// Game actions
 export const gameActions = {
 	
-	playCardToCaravan: (
-    game: GameState, 
-    cardSel: CardSelect, 
-    caravanId: CaravanId
-  ): GameState => {
-    // Modify the existing player object instead of spreading
-    const newHand = game.player.hand.filter(c => c.id !== cardSel?.card.id);
-    game.player.hand = newHand;
-
-    return {
-      ...game,
-      caravans: {
-        ...game.caravans,
-        [caravanId]: [...game.caravans[caravanId], cardSel?.card]
-      }
-      // Don't spread player - keep the class instance
-    };
-  },
-
-  attachCardToCard: (
+	playCardToCaravan(
     game: GameState,
-    cardSel: CardSelect,
-    targetSel: CardSelect,
-    caravanId: CaravanId
-  ): GameState => {    
+    cardId: string,
+    targetCaravanId: CaravanId,
+    playerId: PlayerId
+  ): GameState {
 
-    // Modify the existing player object instead of spreading
-    const newHand = game.player.hand.filter(c => c.id !== cardSel?.card.id);
-    game.player.hand = newHand;    
+    // Play and draw
+    const hand = game[playerId].hand.filter(c => c.id !== cardId)        
+    const card = game[playerId as PlayerId].hand.filter(c => c.id === cardId)[0]
+    card.cardStatus = 'entering'
+    const [drawn, ...restDeck] = game[playerId].deck
 
     return {
       ...game,
-
+      [playerId]: {
+        ...[playerId],
+        hand: [...hand, drawn],
+        deck: restDeck
+      },
       caravans: {
         ...game.caravans,
-        [caravanId]: game.caravans[caravanId].map(card => {
-          if (card.id === targetSel?.card.id) {
-            return {
-              ...card,
-              attachments: [...(card.attachments ?? []), cardSel?.card],
-            };
-          }
-
-          return card;
-        }),
+        [targetCaravanId]: [...game.caravans[targetCaravanId], card,]
       },
     };
   },
 
+  attachCardToCard(
+    game: GameState,
+    sourceCardId: string,
+    targetCardId: string,
+    playerId: PlayerId
+  ): GameState {
+    const source = game[playerId].hand.find(c => c.id === sourceCardId);    
+    if (!source) return game;
+    source.cardStatus = 'attaching'
 
-	drawCard(player: Player): Player {
-    if (player.deck.length === 0) return player;
+    const targetLoc = findCardLocation(game, targetCardId);
+    if (!targetLoc) return game;
 
-    const [card, ...restDeck] = player.deck;
+    const targetCaravanId = targetLoc;
+
+    // Draw    
+    const hand = game[playerId].hand.filter(c => c.id !== sourceCardId)
+    const [drawn, ...restDeck] = game[playerId].deck
+
+    
+
+    if (source.value === 'J') {
+      source.cardStatus = 'destroying'
+      return {
+        ...game,
+        [playerId]: {
+          ...game[playerId],
+          hand: [...hand, drawn],
+          deck: restDeck,
+        },
+        caravans: {
+          ...game.caravans,
+          [targetCaravanId]: game.caravans[targetCaravanId as CaravanId].map(card =>
+            card.id === targetCardId
+              ? {
+                  ...card,
+                  cardStatus: 'destroying',
+                  attachments: [...(card.attachments ?? []), source],
+                }
+              : card
+          ),
+        },
+      };
+    } else if (source.value === 'Joker1' || source.value === 'Joker2') {
+        const targetCard = game.caravans[targetCaravanId as CaravanId].find(
+          c => c.id === targetCardId
+        );
+        if (!targetCard) return game;
+
+        return {
+          ...game,
+          [playerId]: {
+            ...game[playerId],
+            hand: [...hand, drawn],
+            deck: restDeck,
+          },
+          caravans: applyJokerEffectGlobal(
+            game.caravans,
+            targetCard,
+            source
+          ),
+        };
+      } else {
+        return {
+          ...game,
+          [playerId]: {
+            ...game[playerId],
+            hand: [...hand, drawn],
+            deck: restDeck
+          },
+          caravans: {
+            ...game.caravans,
+            [targetCaravanId]: game.caravans[targetCaravanId as CaravanId].map(card =>
+              card.id === targetCardId
+                ? {
+                    ...card,
+                    attachments: [...(card.attachments ?? []), source],
+                  }
+                : card
+            ),
+          },
+        };
+      }   
+  },
+
+  discardAndDraw(
+    game: GameState,
+    playerId: PlayerId,
+    cardId: string
+  ): GameState {
+    const player = game[playerId];
+    const card = player.hand.find(c => c.id === cardId);
+    if (!card || player.deck.length === 0) return game;
+
+    const [drawn, ...restDeck] = player.deck;
 
     return {
-      ...player,
-      deck: restDeck,
-      hand: [...player.hand, card],
+      ...game,
+      [playerId]: {
+        ...player,
+        hand: [...player.hand.filter(c => c.id !== cardId), drawn],
+        deck: restDeck,
+        discardPile: [...player.discardPile, card],
+      },
     };
   },
 
+	drawCard(game: GameState, playerId: PlayerId): GameState {
+    const player = game[playerId];
+    const deck = game[playerId].deck;
 
-  discardCard(player: Player, cardSel: CardSelect): Player {
-  const card = player.hand.find(c => c.id === cardSel?.card.id);
-  if (!card) return player;
+    if (deck.length === 0) return game;
 
-  return {
-    ...player,
-    hand: player.hand.filter(c => c.id !== cardSel?.card.id),
-    discardPile: [...player.discardPile, card],
+    const [drawn, ...restDeck] = player.deck;
+
+    return {
+      ...game,
+      [playerId]: {
+        ...player,
+        hand: [...player.hand, drawn],
+        deck: restDeck
+      },    
     };
   },
 
-  drawHand(player: Player): Player {
-    let newPlayer = player
+  drawHand(
+    game: GameState,
+    playerId: PlayerId
+  ): GameState {
+    let gameChange = game
 
     for (let i = 0; i < 8 ; i++ ) {
-      newPlayer = this.drawCard(newPlayer)         
+      gameChange = this.drawCard(gameChange, playerId)         
     }
-
-    return {
-      ...player,
-      deck: newPlayer.deck,
-      hand: newPlayer.hand,      
-    }
+    
+    return gameChange
   },
 
   discardCaravan: (game: GameState, caravanId: CaravanId): GameState => {
@@ -106,117 +250,12 @@ export const gameActions = {
     }
   },
 
-  removeCaravanCard: (game: GameState, cardSel: CardSelect): GameState => {
-    if (!cardSel?.card) {
+  removeCaravanCard: (game: GameState, cardSel: Card): GameState => {
+    if (cardSel) {
       throw new Error('removeCard called without a card');
     }
 
-    const origin = cardSel?.origin as CaravanId;
-
-    return {
-      ...game,
-      caravans: {
-        ...game.caravans,
-        [origin]: game.caravans[origin].filter(
-          card => card.id !== cardSel?.card.id
-        ),
-      },
-    };
-  },
+    return game    
+  }
 };
 
-export function getCaravanScore(cards: Card[]) {
-  let score = 0;
-  for (const card of cards) {
-    if (isFaceCard(card)) continue;
-    else score += card.value as number;  
-  }
-  return score;
-}
-
-const getCaravanDirection = (cards: Card[]): boolean | null => {
-    // true ascending, false descending, null undefined
-    if (cards.length < 2) {
-      return null
-    }	
-    else if (cards[0].value > cards[1].value) {
-      return false
-    } else {
-      return true
-    }
-  }
-
-const getCaravanSuit= (cards: Card[]): string | null => {
-    if (cards.length === 0) return null;
-    return cards[cards.length - 1].suit;
-}
-
-// Game rules
-export type PlayResult =
-  | { allowed: true }
-  | { allowed: false; reason: string }
-  | {allowed: null};
-
-
-export function canPlayToCaravan(
-  state: GameState,
-  cardSel: CardSelect,
-  caravanId: CaravanId
-): PlayResult {
-
-  if (!cardSel) {
-    return { allowed: null};
-  } else if (isFaceCard(cardSel.card)) {
-    if (cardSel.card.value === "Q") {
-      return { allowed: true }
-    } else {
-      return { allowed: false, reason: 'Rei e Valete não podem ser jogados diretamente na caravana' };
-    }
-  }
-
-  const caravan = state.caravans[caravanId];
-  const direction = getCaravanDirection(caravan);
-  const suit = getCaravanSuit(caravan);
-
-  if (!caravan) {
-    return { allowed: false, reason: 'Invalid caravan' };
-  } else if (caravan.length === 0) {
-    return { allowed: true };
-  } else if (cardSel.card.suit === suit) {
-    return { allowed: true}
-  } else {
-    // Value card rules
-    const lastCard = caravan[caravan.length - 1];
-
-    if (cardSel.card.value === lastCard.value) {
-      return { allowed: false, reason: 'Valor igual em sequência não permitido' };
-    } else if (direction === null) {
-      return { allowed: true };     
-    } else if (direction === true && cardSel.card.value > lastCard.value) {
-      return { allowed: true };
-    } else if (direction === false && cardSel.card.value < lastCard.value) {
-      return { allowed: true};
-    } else {
-      return { allowed: false, reason: 'Valor contrário à direção da caravana' };
-    }
-
-  }  
-}
-
-export const canAttachCard = (
-  cardSel: CardSelect,
-  targetSel: CardSelect,
-  ): PlayResult => {
-  if (!cardSel) {
-    return { allowed: false, reason: 'Nenhuma carta selecionada' };
-  } else if (!isFaceCard(cardSel.card) || cardSel.card.value === 'Q') {
-    return { allowed: false, reason: 'Valores e Dama não podem ser anexados' };
-  }  else if (!targetSel) {
-    return { allowed: false, reason: 'Nenhuma carta alvo' };
-  } else if (isFaceCard(targetSel.card)) {
-    return { allowed: false, reason: 'Figuras devem ser anexas a uma carta de valor' };
-  } else {
-    return { allowed: true };  
-  
-  }
-}

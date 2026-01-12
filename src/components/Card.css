@@ -1,3 +1,4 @@
+
 .card-root {
   position: relative;
   width: 90px;
@@ -46,10 +47,6 @@
   transition: all 0.2s ease;
 }
 
-.card.dragging {
-  cursor: grabbing;
-}
-
 .card:first-child {
   margin-left: 0;
 }
@@ -63,12 +60,10 @@
 }
 
 .caravan-card {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  position: absolute;   
   width: 100px;
   pointer-events: auto;
-  padding: 4px;
+  padding: 6px;
   transition: transform 0.15s ease;
 }
 
@@ -79,16 +74,6 @@
 }
 
 
-.card-attachable:hover {
-  cursor: pointer;
-  transform: translateX(-50%) translateX(20px);
-  cursor: pointer;
-  box-shadow: #12ecc899 0px 12px 36px ;
-  border-color: #12ecc899;
-  border-radius: 8px;
-  border-width: 4px;
-  
-}
 
 .card-blocked {
   cursor: not-allowed;

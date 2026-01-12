@@ -1,69 +1,173 @@
 import './App.css'
 import floorBg from './assets/table2.jpg';
+import { useState, useReducer, useEffect } from 'react';
 
-import { useState } from 'react';
+import { type Card, createDeck } from './game/types';
+import { type PlayResult, gameRules } from './game/rules';
+import { type HoverTarget, gameActions } from './game/actions';
+import { type GameState, gameReducer } from './game/turns';
 
-import { useGameState } from './game/types'
+import { decideAiAction } from './ai/aiController';
 
 import { Table } from './components/Table'
 import { Hand } from './components/Hand'
 
-import type { CaravanId } from './game/types';
-import { canAttachCard, gameActions } from './game/actions';
-
-import { canPlayToCaravan } from './game/actions';
-
-import type { CardSelect, PlayResult } from './game/actions';
-
 function App() {
 	
-	const { game, setGame } = useGameState();
-	const [cardSel, setCardSel] = useState<CardSelect>(null);
-	//const [targetSel, setTargetSel] = useState<CardSelect>(null);
+	// React states
+	const [cardSel, setCardSel] = useState<Card | null>(null);
+	const [hoverTarget, setHoverTarget] = useState<HoverTarget | null>(null)
 
-	// Play rules state helpers
-	const getCaravanPlayState = (caravanId: CaravanId): PlayResult => {
-		return canPlayToCaravan(game, cardSel, caravanId);
+	// Setup reducer
+	const initGame: GameState = {
+		turn: { currentPlayer: 'player', phase: 'main', turnNumber: 1 },
+		player: { deck: [], hand: [], discardPile: [] },
+		enemy: { deck: [], hand: [], discardPile: [] },
+		caravans: {
+			'p-1': [], 'p-2': [], 'p-3': [],
+			'e-1': [], 'e-2': [], 'e-3': [],
+		},		
 	};
 
-	const getAttachPlayState = ( targetSel: CardSelect ): PlayResult => {
-		return canAttachCard(cardSel, targetSel);		
-	};
-	
-	// Click handlers
-	const handleCaravanClick = (caravanId: CaravanId): PlayResult | void => {
-		if (!cardSel) return;
+	const [game, dispatch] = useReducer(
+		gameReducer,
+		initGame,
+		(baseGame): GameState => {
+			let game = {
+				...baseGame,
+				player: {
+					...baseGame.player,
+					deck: createDeck(),
+				},
+				enemy: {
+					...baseGame.enemy,
+					deck: createDeck(),
+				},
+			};
 
-			const caravanPlayResult = canPlayToCaravan(game, cardSel, caravanId)
-		
-			if (caravanPlayResult?.allowed) {
-				setGame(prev =>
-					gameActions.playCardToCaravan(prev, cardSel, caravanId)
-				);
-				setCardSel(null);				
-			}
-		};
-	
-	const handlePlacedCardClick = ( targetSel: CardSelect, caravanId: CaravanId) => {					
-		if (!cardSel || !targetSel) return;
+			game = gameActions.drawHand(game, 'player');
+			game = gameActions.drawHand(game, 'enemy');
 
-		//if targetSel.origin === 'hand'
-		//setTargetSel(targetSel)
+			return game;
+		}
+	);
 
-		const attachPlayResult = canAttachCard(cardSel, targetSel);
-		
-		if (attachPlayResult?.allowed) {
-			setGame(prev =>
-				gameActions.attachCardToCard(prev, cardSel, targetSel, caravanId)
-			);
-			setCardSel(null);
-			//setTargetSel(null);
+	// Process AI turn
+	useEffect(() => {
+		if (game.turn.currentPlayer !== "enemy") return;
+
+		const action = decideAiAction(game, "enemy");
+
+		const timeout = setTimeout(() => {
+			dispatch(action);
+		}, 100);
+
+		return () => clearTimeout(timeout);
+	}, [game.turn, game]);
+
+
+	// Playability check
+	const getPlayability = (target: HoverTarget | null): PlayResult | null => {
+		// If no selection
+		if (!cardSel) return null;
+
+		if (game.turn.currentPlayer !== 'player') {			
+			return null
 		}
 
-		
+		switch (target?.type) {
+			case 'caravan':
+				// if not player caravans
+				if (target.caravanId[0] !== 'p') {
+					return null
+				}
+
+				if (game.turn.phase === 'setup') {
+					return gameRules.canPlayCaravanSetup(
+						cardSel,
+					game.caravans[target.caravanId]
+				)
+
+				} else {
+					return gameRules.canPlayToCaravan(
+						cardSel,
+						game.caravans[target.caravanId]
+					);
+
+				}
+				
+			case 'placed':
+				return gameRules.canAttachCard(cardSel, target.card);
+
+			default:
+				return null;
+		}
 	};
 	
+	// Click handler
+	const handlePlay = (target: HoverTarget) => {
+		if (!cardSel) return;
+
+		switch (target.type) {
+
+			case 'deck': {
+				dispatch({
+					type: 'DISCARD_DRAW',
+					cardSel: cardSel,
+					playerId: 'player'
+				})
+				break
+			}	
+
+			case 'caravan': {
+				const result = gameRules.canPlayToCaravan(
+					cardSel,
+					game.caravans[target.caravanId]
+				);
+
+				if (!result?.allowed) return;
+
+				dispatch({
+					type: 'PLAY_CARD_TO_CARAVAN',
+					cardSel,
+					caravanId: target.caravanId,
+					playerId: 'player',
+				});
+
+				break;
+			}
+
+			case 'placed': {
+				const result = gameRules.canAttachCard(cardSel, target.card);
+
+				if (!result?.allowed) return;
+
+				dispatch({
+					type: 'ATTACH_CARD',
+					cardSel,
+					targetSel: target.card,
+					caravanId: target.caravanId,
+					playerId: 'player',
+				});
+
+				break;
+			}
+
+			default:
+				return;
+		}
+		
+		// cleanup after successful play
+		setCardSel(null);
+		setHoverTarget(null);
+	};
+
+	const handleDestroyAnimationComplete = () => {
+		dispatch({ type: 'REMOVE_DESTROYED_CARDS' });
+	};
+
 	// Main App render
+	//style={{backgroundImage: `url(${floorBg})`}}
 	return (
 		<div 
 			className="
@@ -72,49 +176,31 @@ function App() {
 				min-h-screen
 				bg-size[auto_10%]
 				bg-center
+				bg-linear-to-br from-sky-50 via-sky-100 to-sky-200
 				flex
 				flex-col
 				overflow-hidden
 				isolate
 			"
-			style={{backgroundImage: `url(${floorBg})`}}
-			onClick={() => setCardSel(null)}
+			
+			onClick={() => setCardSel(null)}			
 		>
 
-			{/* Dark overlay */}
-			<div className="absolute inset-0 z-10 bg-black/18 pointer-events-none" />
-
-			{/* Lamp light */}
-			<div
-				className="absolute inset-0 z-20 pointer-events-none mix-blend-overlay"
-
-				style={{
-					background: `
-						radial-gradient(
-							ellipse at 50% 40%,
-							rgba(255, 220, 150, 0.55) 0%,
-							rgba(255, 200, 120, 0.35) 25%,
-							rgba(255, 180, 90, 0.18) 45%,
-							rgba(0, 0, 0, 0.55) 70%,
-							rgba(0, 0, 0, 0.85) 90%
-						)
-					`,
-				}}
-			/>
 
 			{/* Game */}	
-			<h1 className='title-text pl-20 mix-blend-soft-'>OCaravana</h1>
+			<h1 className='title-text pl-20'>OCaravana</h1>
 			<div className="game">															
 				<div>
-						<Hand hand={game.enemy.hand} onCardSelect={setCardSel} cardSelection={cardSel} />
+						<Hand hand={game.enemy.hand} onCardSelect={setCardSel} cardSel={cardSel} />
 						<Table 
 							game={game} 
-							onCaravanClick={handleCaravanClick} 
-							onPlacedCardClick={handlePlacedCardClick}
-							getCaravanPlayResult={getCaravanPlayState}
-							getAttachPlayResult={getAttachPlayState}
+							playResult={getPlayability(hoverTarget)}
+							hoverTarget={hoverTarget}
+							onHoverTarget={setHoverTarget}
+							onTargetClick={handlePlay}
+							onDestroyAnimationComplete={handleDestroyAnimationComplete}
 						/>
-						<Hand hand={game.player.hand} onCardSelect={setCardSel} cardSelection={cardSel}/>
+						<Hand hand={game.player.hand} onCardSelect={setCardSel} cardSel={cardSel}/>
 					</div>
 				</div>
 			</div>

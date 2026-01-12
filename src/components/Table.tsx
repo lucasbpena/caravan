@@ -1,61 +1,88 @@
 import './Table.css';
 
-import { Caravan } from './Caravan';
-import { PLAYER_CARAVANS, ENEMY_CARAVANS } from '../game/types';
-import type { CaravanId, GameState } from '../game/types';
-import { gameActions, type CardSelect, type PlayResult } from '../game/actions';
+import { PLAYER_CARAVANS, ENEMY_CARAVANS, type CaravanId } from '../game/types';
+import { type GameState } from '../game/turns';
+import { type HoverTarget } from '../game/actions';
+import { getCaravanScore, getCaravanStatus, type CaravanStatus, type PlayResult } from '../game/rules';
 
+import { Caravan } from './Caravan';
 import { Deck } from './Deck';
 import { DiscardPile } from './Discard';
 
 
 type TableProps = {
   game: GameState;
-  onCaravanClick: (id: CaravanId) => void;
-  onPlacedCardClick: ( targetSel: CardSelect, caravanId: CaravanId) => void;
-  getCaravanPlayResult: (id: CaravanId) => PlayResult;
-  getAttachPlayResult: ( targetSel: CardSelect ) => PlayResult;
+  playResult: PlayResult | null;
+  hoverTarget: HoverTarget | null;
+  onHoverTarget: (target: HoverTarget | null) => void;
+  onTargetClick: (target: HoverTarget) => void;
+  onDestroyAnimationComplete: () => void;
 };
 
-export const Table = ({game, onCaravanClick, onPlacedCardClick, getCaravanPlayResult, getAttachPlayResult}: TableProps) => {
+export const Table = ({ game, playResult, hoverTarget, onHoverTarget, onTargetClick, onDestroyAnimationComplete }: TableProps) => {
+
+  const caravanStatuses: Record<CaravanId, CaravanStatus> = {} as Record<CaravanId, CaravanStatus>;
+
+  for (let i = 1; i <= 3; i++) {
+    const playerId = `p-${i}` as CaravanId;
+    const enemyId = `e-${i}` as CaravanId;
+
+    caravanStatuses[playerId] = getCaravanStatus(
+      getCaravanScore(game.caravans[playerId]), 
+      getCaravanScore(game.caravans[enemyId])
+    );
+    
+    caravanStatuses[enemyId] = getCaravanStatus(
+      getCaravanScore(game.caravans[enemyId]), 
+      getCaravanScore(game.caravans[playerId])
+    );
+}
+
+
   return (
     <div className="table-wrapper">
       <div className="table-grid">
         {ENEMY_CARAVANS.map((id) => (
           <Caravan
-            key={id}
-            id={id}
-            cards={game.caravans[id]}
-            onCaravanClick={() => onCaravanClick(id)}
-            onPlacedCardClick={onPlacedCardClick}
-            playState={{allowed: false, reason: 'Caravana inimiga'}}
-            getAttachPlayResult={getAttachPlayResult}
-            enemy={true}
-          />
+          key={id}
+          id={id}
+          cards={game.caravans[id]}
+          playResult={playResult}
+          hoverTarget={hoverTarget}
+          onHoverTarget={onHoverTarget}
+          onTargetClick={onTargetClick}
+          status={caravanStatuses[id]}
+          onDestroyAnimationComplete={onDestroyAnimationComplete}
+        />
+
         ))}
+
+        
 
         {PLAYER_CARAVANS.map((id) => (
           <Caravan
             key={id}
             id={id}
             cards={game.caravans[id]}
-            onCaravanClick={() => onCaravanClick(id)}
-            onPlacedCardClick={onPlacedCardClick}
-            playState={getCaravanPlayResult(id)}
-            getAttachPlayResult={getAttachPlayResult}
+            playResult={playResult}
+            hoverTarget={hoverTarget}
+            onHoverTarget={onHoverTarget}
+            onTargetClick={onTargetClick}
+            status={caravanStatuses[id]}
+            onDestroyAnimationComplete={onDestroyAnimationComplete}
           />
         ))}
       </div>
         <div className="table-side">
           <Deck
             count={game.player.deck.length}
-            onClick={() => gameActions.drawCard(game)}
+            onTargetClick={onTargetClick}
           />
-
+          {/*
           <DiscardPile
-            top={game.player.discard.at(-1)}
-            count={game.player.discard.length}
-          />
+            top={game.player.discardPile.at(-1)}
+            count={game.player.discardPile.length} 
+          />*/}
         </div>
     </div>
   );
