@@ -53,7 +53,7 @@ export const CardView = ({
   return (
     <motion.div
       className="card"
-      layout
+      
       onClick={(e) => {
         e.stopPropagation();
         onClick?.();

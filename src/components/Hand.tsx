@@ -41,7 +41,11 @@ export const Hand = ({ hand, onCardSelect, cardSel }: HandProps) => {
               scale: isActive ? 1.1 : 1,
               filter: isActive
                 ? 'drop-shadow(0 10px 14px rgba(18,236,200,0.8))'
-                : 'none',
+                : 'drop-shadow(0 0px 0px rgba(0,0,0,0))',
+            }}
+            transition={{
+              scale: { duration: 0.2 },
+              filter: { duration: 0.2 }
             }}
           >
             <CardView card={card} onClick={() => onCardSelect(card)} />

@@ -188,10 +188,12 @@ function App() {
 
 
 			{/* Game */}	
-			<h1 className='title-text pl-20'>OCaravana</h1>
+			<h1 className='title-text pl-20 mb-4'>OCaravana</h1>
 			<div className="game">															
-				<div>
-						<Hand hand={game.enemy.hand} onCardSelect={setCardSel} cardSel={cardSel} />
+				<div className="flex flex-col gap-8">
+						<div className="h-[200px]">
+							<Hand hand={game.enemy.hand} onCardSelect={setCardSel} cardSel={cardSel} />
+						</div>
 						<Table 
 							game={game} 
 							playResult={getPlayability(hoverTarget)}
@@ -200,7 +202,9 @@ function App() {
 							onTargetClick={handlePlay}
 							onDestroyAnimationComplete={handleDestroyAnimationComplete}
 						/>
-						<Hand hand={game.player.hand} onCardSelect={setCardSel} cardSel={cardSel}/>
+						<div className="h-[200px]">
+							<Hand hand={game.player.hand} onCardSelect={setCardSel} cardSel={cardSel}/>
+						</div>
 					</div>
 				</div>
 			</div>

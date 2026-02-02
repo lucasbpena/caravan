@@ -1,5 +1,7 @@
 import './Deck.css';
 
+import cardBack from '../assets/card-back1.png'
+
 import { type HoverTarget } from '../game/actions';
 type DeckProps = {
   count: number;
@@ -11,7 +13,11 @@ export const Deck = ({ count, onTargetClick }: DeckProps) => {
   }
   return (
     <div className="deck" onClick={() => onTargetClick(deckTarget)}>
-      <div className="deck-card" />
+      <img
+        src={cardBack}
+        //className="card-face"
+        draggable={false}
+      />
       <span className="deck-count">{count}</span>
     </div>
   );

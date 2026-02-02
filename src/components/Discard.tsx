@@ -2,6 +2,7 @@ import './Discard.css';
 import { cardPaths } from './Card';
 import type { Card } from '../game/types';
 
+import cardBack from '../assets/card-back1.png'
 type DiscardPileProps = {
   top?: Card;
   count: number;
@@ -18,7 +19,8 @@ export const DiscardPile = ({ top, count }: DiscardPileProps) => {
       ) : (
         <div className="discard-empty" />
       )}
-      <span className="discard-count">{count}</span>
+      
+
     </div>
   );
 };
