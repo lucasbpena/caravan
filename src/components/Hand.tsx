@@ -1,4 +1,4 @@
-import { AnimatePresence, motion, type MotionStyle } from 'framer-motion';
+import { motion, type MotionStyle } from 'framer-motion';
 import './Hands.css';
 
 import { CardView } from './Card';
@@ -8,9 +8,11 @@ type HandProps = {
   hand: Card[];
   onCardSelect: (selection: Card | null) => void;
   cardSel: Card | null;
+  turned?: boolean;
 };
 
-export const Hand = ({ hand, onCardSelect, cardSel }: HandProps) => {
+export const Hand = ({ hand, onCardSelect, cardSel, turned=false }: HandProps) => {
+  
   function getCardMotion(
     index: number,
     isActive: boolean,
@@ -29,7 +31,7 @@ export const Hand = ({ hand, onCardSelect, cardSel }: HandProps) => {
   }
 
   return (
-    <div className="hand">
+    <div className={`hand ${turned ? 'rotate' : ''}`}>
       {hand.map((card, i) => {
         const isActive = card.id === cardSel?.id;
 
@@ -48,7 +50,7 @@ export const Hand = ({ hand, onCardSelect, cardSel }: HandProps) => {
               filter: { duration: 0.2 }
             }}
           >
-            <CardView card={card} onClick={() => onCardSelect(card)} />
+            <CardView card={card} onClick={() => onCardSelect(card)} turned={turned}/>
           </motion.div>          
         );
       })}

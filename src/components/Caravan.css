@@ -9,11 +9,9 @@
   border-top-right-radius: 6px;
   background: rgba(0,0,0,0.15);
   overflow: visible;          /* keeps stack inside table */  
-  transition: all 0.5s ease;
+  transition: all 0.5s ease;  
   
 }
-
-
 
 .caravan-overburden {
   position: relative;
@@ -63,6 +61,13 @@
 
   border: 4px solid rgba(255,255,255,0.6);
 }
+
+.caravan-score.rotate {
+  transform: rotate(180deg);
+  left: 10%;
+  
+}
+
 
 .caravan-score-contest {
   position: absolute;

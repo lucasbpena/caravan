@@ -9,14 +9,14 @@ type DeckProps = {
 };
 
 export const Deck = ({ count, onTargetClick }: DeckProps) => {
-  const deckTarget: HoverTarget = {type: 'deck'
-  }
+  const deckTarget: HoverTarget = {type: 'deck'}
   return (
     <div className="deck" onClick={() => onTargetClick(deckTarget)}>
       <img
         src={cardBack}
         //className="card-face"
         draggable={false}
+        className='deck-card'
       />
       <span className="deck-count">{count}</span>
     </div>

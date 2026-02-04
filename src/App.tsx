@@ -116,7 +116,8 @@ function App() {
 					cardSel: cardSel,
 					playerId: 'player'
 				})
-				break
+				
+				break;
 			}	
 
 			case 'caravan': {
@@ -176,13 +177,8 @@ function App() {
 				min-h-screen
 				bg-size[auto_10%]
 				bg-center
-				bg-linear-to-br from-sky-50 via-sky-100 to-sky-200
-				flex
-				flex-col
-				overflow-hidden
-				isolate
-			"
-			
+				bg-linear-to-br from-sky-50 via-sky-100 to-sky-200				
+			"			
 			onClick={() => setCardSel(null)}			
 		>
 
@@ -191,8 +187,8 @@ function App() {
 			<h1 className='title-text pl-20 mb-4'>OCaravana</h1>
 			<div className="game">															
 				<div className="flex flex-col gap-8">
-						<div className="h-[200px]">
-							<Hand hand={game.enemy.hand} onCardSelect={setCardSel} cardSel={cardSel} />
+						<div className="h-50">
+							<Hand hand={game.enemy.hand} onCardSelect={setCardSel} cardSel={cardSel} turned={true}/>
 						</div>
 						<Table 
 							game={game} 
@@ -202,7 +198,7 @@ function App() {
 							onTargetClick={handlePlay}
 							onDestroyAnimationComplete={handleDestroyAnimationComplete}
 						/>
-						<div className="h-[200px]">
+						<div className="h-50">
 							<Hand hand={game.player.hand} onCardSelect={setCardSel} cardSel={cardSel}/>
 						</div>
 					</div>

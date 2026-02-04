@@ -11,6 +11,8 @@
 
 .table-wrapper {
   width: 900px;          /* MUST match visual table */
+  margin: 0 auto;         /* center horizontally */
+  padding: 0px 0px;     /* inner breathing room */
   display: flex;
   justify-content: center;
 }
@@ -21,9 +23,13 @@
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, auto);
   gap: 140px 30px;
-  
+  padding: 60px 0;
+  align-items: end; /* Align all items to top of their grid cell */
 }
 
+.table-grid > :nth-child(n+4) {
+  align-self: start; /* Player caravans (4-6) align to bottom */
+}
 .table-side {
   width: 100px;
   display: grid;

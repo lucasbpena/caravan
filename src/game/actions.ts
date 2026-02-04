@@ -32,7 +32,7 @@ function applyJokerEffectGlobal(
   targetCard: Card,
   joker: Card
 ): GameState['caravans'] {
-  const nextCaravans: GameState['caravans'] = {} as any;
+  const nextCaravans: GameState['caravans'] = {} as Record<CaravanId, Card[]>;
 
   for (const [caravanId, cards] of Object.entries(caravans)) {
     nextCaravans[caravanId as CaravanId] = cards.map(card => {
@@ -59,7 +59,6 @@ function applyJokerEffectGlobal(
       return {
         ...card,
         cardStatus: 'destroying',
-        attachments: [...(card.attachments ?? []), joker],
       };
     });
   }
@@ -204,7 +203,7 @@ export const gameActions = {
         ...player,
         hand: [...player.hand.filter(c => c.id !== cardId), drawn],
         deck: restDeck,
-        discardPile: [...player.discardPile, card],
+        //discardPile: [...player.discardPile, card],
       },
     };
   },
@@ -250,12 +249,4 @@ export const gameActions = {
     }
   },
 
-  removeCaravanCard: (game: GameState, cardSel: Card): GameState => {
-    if (cardSel) {
-      throw new Error('removeCard called without a card');
-    }
-
-    return game    
-  }
 };
-

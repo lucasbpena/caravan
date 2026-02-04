@@ -151,7 +151,7 @@ export const Caravan = ({
       })}
       </AnimatePresence>
 
-      <div className={`caravan-score ${status}`}>
+      <div className={`caravan-score ${caravanTarget.owner === 'enemy' ? 'rotate' : ''} ${status}`}>
         {getCaravanScore(cards)}
       </div>
 

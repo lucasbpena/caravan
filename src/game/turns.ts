@@ -153,7 +153,7 @@ export function gameReducer(
             id,
             cards.filter(card => card.cardStatus !== 'destroying')
           ])
-        )
+        ) as Record<CaravanId, Card[]>
       };
     }
 
