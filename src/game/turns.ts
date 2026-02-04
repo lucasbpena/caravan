@@ -1,6 +1,7 @@
-import { type Card, type CaravanId, type Player} from "./types";
+import { type Card, type CaravanId, type Player, createDeck} from "./types";
 import { gameActions  } from "./actions";
 import { getCaravanScore, getCaravanStatus } from "./rules";
+
 
 export type PlayerId = 'player' | 'enemy';
 
@@ -30,13 +31,14 @@ export type GameAction =
   | { type: 'ATTACH_CARD'; cardSel: Card; targetSel: Card; caravanId: CaravanId; playerId: PlayerId}
   | { type: 'DISCARD_DRAW'; cardSel: Card; playerId: PlayerId }
   | { type: 'DISCARD_CARAVAN'; caravanId: CaravanId }
-  | { type: 'REMOVE_DESTROYED_CARDS'};
+  | { type: 'REMOVE_DESTROYED_CARDS'}
+  | { type: 'RESTART_GAME'};
 
 
 const allowedActions: Record<GamePhase, GameAction['type'][]> = {
   setup: ['PLAY_CARD_TO_CARAVAN'],
   main: ['PLAY_CARD_TO_CARAVAN', 'ATTACH_CARD', 'DISCARD_DRAW', 'DISCARD_CARAVAN'],
-  over: [],
+  over: ['RESTART_GAME'],
 };
 
 
@@ -185,6 +187,23 @@ export function gameReducer(
       };
     }
 
+    case 'RESTART_GAME': {
+      let newGame: GameState = {
+        turn: { currentPlayer: 'player', phase: 'setup', turnNumber: 1 },
+        player: { deck: createDeck(), hand: [], discardPile: [] },
+        enemy: { deck: createDeck(), hand: [], discardPile: [] },
+        caravans: {
+          'p-1': [], 'p-2': [], 'p-3': [],
+          'e-1': [], 'e-2': [], 'e-3': [],
+        },
+      };
+
+      // Draw hands for both players
+      newGame = gameActions.drawHand(newGame, 'player');
+      newGame = gameActions.drawHand(newGame, 'enemy');
+
+      return newGame;
+    }
 
     default:
       return game;

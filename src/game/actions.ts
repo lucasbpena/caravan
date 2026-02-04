@@ -124,8 +124,7 @@ export const gameActions = {
     const hand = game[playerId].hand.filter(c => c.id !== sourceCardId)
     const [drawn, ...restDeck] = game[playerId].deck
 
-    
-
+    // Jack effects
     if (source.value === 'J') {
       source.cardStatus = 'destroying'
       return {
@@ -142,12 +141,17 @@ export const gameActions = {
               ? {
                   ...card,
                   cardStatus: 'destroying',
-                  attachments: [...(card.attachments ?? []), source],
+                  attachments: [...(card.attachments ?? []), source].map(att => ({
+                  ...att,
+                  cardStatus: 'destroying',
+                })),
                 }
               : card
           ),
+          
         },
       };
+    // Joker effects
     } else if (source.value === 'Joker1' || source.value === 'Joker2') {
         const targetCard = game.caravans[targetCaravanId as CaravanId].find(
           c => c.id === targetCardId

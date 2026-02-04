@@ -23,8 +23,8 @@ export function GameEndBanner({ result, onRestart }: { result: PlayerId; onResta
         fixed left-0 top-0 bottom-0 z-35
         w-2
         ${isVictory 
-          ? 'bg-gradient-to-r from-green-500 to-transparent' 
-          : 'bg-gradient-to-r from-red-500 to-transparent'
+          ? 'bg-linear-to-r from-green-500 to-transparent' 
+          : 'bg-linear-to-r from-red-500 to-transparent'
         }
         ${isVictory ? 'shadow-[0_0_30px_10px_rgba(34,197,94,0.4)]' : 'shadow-[0_0_30px_10px_rgba(239,68,68,0.4)]'}
         animate-pulse
@@ -32,10 +32,10 @@ export function GameEndBanner({ result, onRestart }: { result: PlayerId; onResta
 
       {/* Floating result card */}
       <div className={`
-        fixed left-8 top-1/2 -translate-y-1/2 z-40
+        fixed left-10 top-1/3 -translate-y-1/2 z-100
         ${isVictory 
-          ? 'bg-gradient-to-br from-green-500 to-emerald-600' 
-          : 'bg-gradient-to-br from-red-500 to-rose-600'
+          ? 'bg-linear-to-br from-green-500 to-emerald-600' 
+          : 'bg-linear-to-br from-red-500 to-rose-600'
         }
         p-8 rounded-2xl
         shadow-2xl
@@ -52,7 +52,7 @@ export function GameEndBanner({ result, onRestart }: { result: PlayerId; onResta
           
           {/* Text */}
           <div className="text-white font-black text-4xl tracking-wide text-center">
-            {isVictory ? 'VITÓRIA!' : 'DERROTA'}
+            {isVictory ? 'VICTORY' : 'DEFEAT'}
           </div>
           
           {/* Button */}
@@ -66,9 +66,10 @@ export function GameEndBanner({ result, onRestart }: { result: PlayerId; onResta
               shadow-xl
               transition-all hover:scale-105
               text-lg
+              cursor-pointer
             "
           >
-            🔄 Jogar Novamente
+            🔄 Play again
           </button>
         </div>
       </div>

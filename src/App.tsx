@@ -55,6 +55,10 @@ function App() {
 	
 	const isOver = isGameOver(game)
 
+	const onRestart = () => {
+		dispatch({ type: 'RESTART_GAME' });
+	}
+
 	// Process AI turn
 	useEffect(() => {
 		if (game.turn.currentPlayer !== "enemy") return;
@@ -175,21 +179,20 @@ function App() {
 		<div 
 			className="
 				relative
-				w-screen
+				w-full
 				min-h-screen
-				bg-size[auto_10%]
-				bg-center
 				bg-linear-to-br from-sky-50 via-sky-100 to-sky-200
 				flex
 				flex-col
-				overflow-hidden
+				items-center
+				overflow-x-hidden
 				isolate
 			"
 		>
 			{isOver && (
 				<GameEndBanner
 					result={isOver}
-					onRestart={() => console.log('a')}
+					onRestart={onRestart}
 				/>
 			)}
 
@@ -197,7 +200,7 @@ function App() {
 			<h1 className='title-text pl-20'>OCaravana</h1>
 			<div className="game">															
 				<div>
-						<Hand hand={game.enemy.hand} onCardSelect={setCardSel} cardSel={cardSel} />
+						<Hand hand={game.enemy.hand} onCardSelect={setCardSel} cardSel={cardSel} turned={true}/>
 						<Table 
 							game={game} 
 							playResult={getPlayability(hoverTarget)}
