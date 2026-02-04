@@ -94,7 +94,7 @@ export const Caravan = ({
             transition={{
               type: 'spring',
               stiffness: 320,
-              damping: 26,
+              damping: 26,  
             }}
             onMouseEnter={() => onHoverTarget(cardTarget)}
             onMouseLeave={() => onHoverTarget(null)}

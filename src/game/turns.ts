@@ -1,6 +1,6 @@
 import { type Card, type CaravanId, type Player} from "./types";
 import { gameActions  } from "./actions";
-import { getCaravanScore, getCaravanStatus, type CaravanStatus } from "./rules";
+import { getCaravanScore, getCaravanStatus } from "./rules";
 
 export type PlayerId = 'player' | 'enemy';
 
@@ -39,7 +39,6 @@ const allowedActions: Record<GamePhase, GameAction['type'][]> = {
   over: [],
 };
 
-const phaseOrder: GamePhase[] = ['setup', 'main', 'over'];
 
 function advanceTurn(game: GameState): GameState {
   const nextPlayer = game.turn.currentPlayer === 'player' ? 'enemy' : 'player';
@@ -54,20 +53,39 @@ function advanceTurn(game: GameState): GameState {
           turnNumber: game.turn.turnNumber + 1,
         },
       };
-  
+    } else {
+      return {
+        ...game,
+        turn: {
+          currentPlayer: nextPlayer,
+          phase: game.turn.phase,
+          turnNumber: game.turn.turnNumber + 1,
+        },
+      };
     }
-  } 
-  return {
-    ...game,
-    turn: {
-      currentPlayer: nextPlayer,
-      phase: game.turn.phase,
-      turnNumber: game.turn.turnNumber + 1,
-    },
-  };
+  } else if (isGameOver(game))  {
+    return {
+      ...game,
+      turn: {
+        currentPlayer: nextPlayer,
+        phase: 'over',
+        turnNumber: game.turn.turnNumber + 1,
+      },
+    };
+
+  } else {
+    return {
+      ...game,
+      turn: {
+        currentPlayer: nextPlayer,
+        phase: game.turn.phase,
+        turnNumber: game.turn.turnNumber + 1,
+      },
+    };
+  }
 }
 
-export const isGameOver = (game: GameState): boolean => {
+export const isGameOver = (game: GameState): PlayerId | false => {
   let playerSold = 0;
   let enemySold = 0;
 
@@ -85,80 +103,92 @@ export const isGameOver = (game: GameState): boolean => {
     if (enemyStatus === 'sold') enemySold++;
   }
 
-  return playerSold >= 2 || enemySold >= 2;
+  if (playerSold >= 2) {
+    return 'player'
+  } else if (enemySold >= 2) { 
+    return 'enemy'
+  }
+
+  return false
 };
 
 
 // Game Reducer
 export function gameReducer(
   game: GameState,
-  action: GameAction,
+  action: GameAction | null,
 ): GameState {
+
   const phase = game.turn.phase;
 
-  switch (action.type) {
+  if (action) {
+    if (Object.hasOwn(allowedActions[phase], action.type)) return game
 
-    case 'PLAY_CARD_TO_CARAVAN': {
-      const gameChange = gameActions.playCardToCaravan(
+    switch (action.type) {
+
+      case 'PLAY_CARD_TO_CARAVAN': {
+        const gameChange = gameActions.playCardToCaravan(
+            game,
+            action.cardSel.id,
+            action.caravanId,
+            action.playerId
+          );
+        if (phase === 'setup') {
+          
+          const caravans = [
+            gameChange.caravans[`${action.playerId[0]}-1` as CaravanId],
+            gameChange.caravans[`${action.playerId[0]}-2` as CaravanId],
+            gameChange.caravans[`${action.playerId[0]}-3` as CaravanId],
+          ]
+
+          if (caravans[0].length > 0 && caravans[1].length > 0 && caravans[2].length > 0 ) {
+            return advanceTurn(gameChange)
+
+          } else {
+            return gameChange
+          }           
+        } else {
+          return advanceTurn(gameChange);
+        }
+      }      
+      
+      case 'ATTACH_CARD': {
+        if (phase !== 'main') return game;
+
+        const gameChange = gameActions.attachCardToCard(
           game,
           action.cardSel.id,
-          action.caravanId,
+          action.targetSel.id,
           action.playerId
         );
-      if (phase === 'setup') {
-        
-        const caravans = [
-          gameChange.caravans[`${action.playerId[0]}-1` as CaravanId],
-          gameChange.caravans[`${action.playerId[0]}-2` as CaravanId],
-          gameChange.caravans[`${action.playerId[0]}-3` as CaravanId],
-        ]
 
-        if (caravans[0].length > 0 && caravans[1].length > 0 && caravans[2].length > 0 ) {
-          return advanceTurn(gameChange)
+        return advanceTurn(gameChange)
+      }
 
-        } else {
-          return gameChange
-        }           
-      } else {
+      case 'DISCARD_DRAW': {
+        //if (phase !== 'main') return game;
+
+        const gameChange = gameActions.discardAndDraw(game, action.playerId, action.cardSel.id);      
+
         return advanceTurn(gameChange);
       }
-    }      
+
+      case 'REMOVE_DESTROYED_CARDS': {
+        return {
+          ...game,
+          caravans: Object.fromEntries(
+            Object.entries(game.caravans).map(([id, cards]) => [
+              id,
+              cards.filter(card => card.cardStatus !== 'destroying')
+            ])
+          )
+        };
+      }
     
-    case 'ATTACH_CARD': {
-      if (phase !== 'main') return game;
-
-      const gameChange = gameActions.attachCardToCard(
-        game,
-        action.cardSel.id,
-        action.targetSel.id,
-        action.playerId
-      );
-
-      return advanceTurn(gameChange)
-    }
-
-    case 'DISCARD_DRAW': {
-      //if (phase !== 'main') return game;
-
-      const gameChange = gameActions.discardAndDraw(game, action.playerId, action.cardSel.id);      
-
-      return advanceTurn(gameChange);
-    }
-
-    case 'REMOVE_DESTROYED_CARDS': {
-      return {
-        ...game,
-        caravans: Object.fromEntries(
-          Object.entries(game.caravans).map(([id, cards]) => [
-            id,
-            cards.filter(card => card.cardStatus !== 'destroying')
-          ])
-        )
-      };
-    }
-
-
     default:
       return game;
+    }
+  } else {
+    return game
   }
 }

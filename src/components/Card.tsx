@@ -63,7 +63,7 @@ export const CardView = ({
           ? { scale: 0.2, rotate: 20, opacity: 0 }
           : { scale: 1, rotate: 0, opacity: 1 }
       }
-      transition={{ duration: 3, ease: 'easeInOut' }}
+      transition={{ duration: 4, ease: 'easeInOut' }}
       onAnimationComplete={() => {
         if (card.cardStatus === 'destroying') {
           onDestroyAnimationComplete?.();

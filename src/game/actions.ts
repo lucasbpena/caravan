@@ -59,7 +59,10 @@ function applyJokerEffectGlobal(
       return {
         ...card,
         cardStatus: 'destroying',
-        attachments: [...(card.attachments ?? []), joker],
+        attachments: card.attachments?.map(att => ({
+          ...att,
+          cardStatus: 'destroying',
+        })),
       };
     });
   }

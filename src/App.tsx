@@ -5,22 +5,23 @@ import { useState, useReducer, useEffect } from 'react';
 import { type Card, createDeck } from './game/types';
 import { type PlayResult, gameRules } from './game/rules';
 import { type HoverTarget, gameActions } from './game/actions';
-import { type GameState, gameReducer } from './game/turns';
+import { type GameState, gameReducer, isGameOver } from './game/turns';
 
 import { decideAiAction } from './ai/aiController';
 
 import { Table } from './components/Table'
 import { Hand } from './components/Hand'
+import { GameEndBanner } from './components/GameEndBanner';
 
 function App() {
 	
 	// React states
 	const [cardSel, setCardSel] = useState<Card | null>(null);
-	const [hoverTarget, setHoverTarget] = useState<HoverTarget | null>(null)
+	const [hoverTarget, setHoverTarget] = useState<HoverTarget | null>(null)	
 
 	// Setup reducer
 	const initGame: GameState = {
-		turn: { currentPlayer: 'player', phase: 'main', turnNumber: 1 },
+		turn: { currentPlayer: 'player', phase: 'setup', turnNumber: 1 },
 		player: { deck: [], hand: [], discardPile: [] },
 		enemy: { deck: [], hand: [], discardPile: [] },
 		caravans: {
@@ -51,6 +52,8 @@ function App() {
 			return game;
 		}
 	);
+	
+	const isOver = isGameOver(game)
 
 	// Process AI turn
 	useEffect(() => {
@@ -60,7 +63,7 @@ function App() {
 
 		const timeout = setTimeout(() => {
 			dispatch(action);
-		}, 100);
+		}, 300);
 
 		return () => clearTimeout(timeout);
 	}, [game.turn, game]);
@@ -182,10 +185,13 @@ function App() {
 				overflow-hidden
 				isolate
 			"
-			
-			onClick={() => setCardSel(null)}			
 		>
-
+			{isOver && (
+				<GameEndBanner
+					result={isOver}
+					onRestart={() => console.log('a')}
+				/>
+			)}
 
 			{/* Game */}	
 			<h1 className='title-text pl-20'>OCaravana</h1>

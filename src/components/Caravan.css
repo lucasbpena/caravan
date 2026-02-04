@@ -27,7 +27,7 @@
   border-top-right-radius: 6px;
   background: rgba(181, 41, 17, 0.15);
   overflow: visible;          /* keeps stack inside table */  
-  transition: all 0.15s ease;
+  transition: all 1s ease;
 }
 
 .caravan.enemy {

@@ -44,7 +44,7 @@ export function getCaravanStatus(score: number, opposingScore: number): CaravanS
 	} else if (score > 26) {
 		return 'overburden'
 	} else {
-		if (opposingScore >= 21 && opposingScore <= 26) {
+		if (opposingScore >= 21 && opposingScore <= 26 && opposingScore >= score) {
 			return 'contest'
 		} else {
 			return 'sold'
