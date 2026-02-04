@@ -46,6 +46,14 @@ export const Caravan = ({
 
   const isPlayable = isHovered && playResult?.allowed;  
 
+  // Calculate dynamic height based on number of cards
+  // Base height for empty caravan (80px) + spacing for each card (36px per card)
+  const minHeight = 150; // Minimum clickable area at bottom
+  const cardSpacing = 40;
+  const dynamicHeight = cards.length > 0 
+    ? minHeight + (cards.length * cardSpacing)
+    : 190; // Default height when empty
+
   return (
     <div
       onMouseEnter={() => onHoverTarget(caravanTarget)}
@@ -59,6 +67,9 @@ export const Caravan = ({
         ${isHovered && !isPlayable ? 'caravan-blocked' : ''}
         ${isPlayable ? 'caravan-playable' : ''}
       `}
+      style={{
+        height: `${dynamicHeight}px`
+      }}
     >
     <AnimatePresence>
       {cards.map((card, index) => {
@@ -94,7 +105,7 @@ export const Caravan = ({
             transition={{
               type: 'spring',
               stiffness: 320,
-              damping: 26,  
+              damping: 40,
             }}
             onMouseEnter={() => onHoverTarget(cardTarget)}
             onMouseLeave={() => onHoverTarget(null)}
@@ -117,7 +128,7 @@ export const Caravan = ({
               onDestroyAnimationComplete={onDestroyAnimationComplete}
             />
 
-            {/* ATTACHMENTS — PURELY VISUAL */}
+            {/* ATTACHMENTS â€” PURELY VISUAL */}
             
             {card.attachments?.map((attachment, i) => (
               <div
@@ -140,7 +151,7 @@ export const Caravan = ({
       })}
       </AnimatePresence>
 
-      <div className={`caravan-score ${status}`}>
+      <div className={`caravan-score ${caravanTarget.owner === 'enemy' ? 'rotate' : ''} ${status}`}>
         {getCaravanScore(cards)}
       </div>
 

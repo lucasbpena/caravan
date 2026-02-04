@@ -1,8 +1,9 @@
-import type { Card } from '../game/types';
 import './Card.css';
+import cardBack from '../assets/card-back1.png'
+
+import type { Card } from '../game/types';
 
 import { motion } from 'framer-motion';
-
 
 export function getCardDisplacement(id: string) {
   let hash = 0;
@@ -42,6 +43,7 @@ type CardViewProps = {
   card: Card;
   onClick?: () => void;
   onDestroyAnimationComplete?: () => void;
+  turned?: boolean;
 };
 
 
@@ -49,11 +51,12 @@ export const CardView = ({
   card,
   onClick,
   onDestroyAnimationComplete,
+  turned
 }: CardViewProps) => {
   return (
     <motion.div
       className="card"
-      layout
+      
       onClick={(e) => {
         e.stopPropagation();
         onClick?.();
@@ -72,7 +75,9 @@ export const CardView = ({
     >
       <div className="card-root">
         <img
-          src={cardPaths[`${card.value}_${card.suit}`]}
+          src={
+            turned === true ? cardBack : cardPaths[`${card.value}_${card.suit}`]
+          }
           className="card-face"
           draggable={false}
         />

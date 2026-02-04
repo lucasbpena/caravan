@@ -57,8 +57,6 @@ export const Table = ({ game, playResult, hoverTarget, onHoverTarget, onTargetCl
 
         ))}
 
-        
-
         {PLAYER_CARAVANS.map((id) => (
           <Caravan
             key={id}
@@ -74,6 +72,7 @@ export const Table = ({ game, playResult, hoverTarget, onHoverTarget, onTargetCl
         ))}
       </div>
         <div className="table-side">
+          <div/>
           <Deck
             count={game.player.deck.length}
             onTargetClick={onTargetClick}

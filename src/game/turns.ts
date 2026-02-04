@@ -152,39 +152,40 @@ export function gameReducer(
         }
       }      
       
-      case 'ATTACH_CARD': {
-        if (phase !== 'main') return game;
+    case 'ATTACH_CARD': {
+      if (phase !== 'main') return game;
 
-        const gameChange = gameActions.attachCardToCard(
-          game,
-          action.cardSel.id,
-          action.targetSel.id,
-          action.playerId
-        );
+      const gameChange = gameActions.attachCardToCard(
+        game,
+        action.cardSel.id,
+        action.targetSel.id,
+        action.playerId
+      );
 
-        return advanceTurn(gameChange)
-      }
+      return advanceTurn(gameChange)
+    }
 
-      case 'DISCARD_DRAW': {
-        //if (phase !== 'main') return game;
+    case 'DISCARD_DRAW': {
+      //if (phase !== 'main') return game;
 
-        const gameChange = gameActions.discardAndDraw(game, action.playerId, action.cardSel.id);      
+      const gameChange = gameActions.discardAndDraw(game, action.playerId, action.cardSel.id);      
 
-        return advanceTurn(gameChange);
-      }
+      return advanceTurn(gameChange);
+    }
 
-      case 'REMOVE_DESTROYED_CARDS': {
-        return {
-          ...game,
-          caravans: Object.fromEntries(
-            Object.entries(game.caravans).map(([id, cards]) => [
-              id,
-              cards.filter(card => card.cardStatus !== 'destroying')
-            ])
-          )
-        };
-      }
-    
+    case 'REMOVE_DESTROYED_CARDS': {
+      return {
+        ...game,
+        caravans: Object.fromEntries(
+          Object.entries(game.caravans).map(([id, cards]) => [
+            id,
+            cards.filter(card => card.cardStatus !== 'destroying')
+          ])
+        ) as Record<CaravanId, Card[]>
+      };
+    }
+
+
     default:
       return game;
     }
