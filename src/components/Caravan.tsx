@@ -1,17 +1,47 @@
 import { AnimatePresence, motion } from 'framer-motion';
 
+import { Trash2 } from 'lucide-react';
+
 import './Caravan.css';
 import { CardView, getCardDisplacement } from './Card';
-import { type Card, type CaravanId } from '../game/types';
+import { type Card, type CaravanId, type Suit } from '../game/types';
 import {
   getCaravanDirection,
   getCaravanScore,
   type CaravanStatus,
   type PlayResult,
 } from '../game/rules';
+
 import type { HoverTarget } from '../game/actions';
 
 import { CaravanArrowP5 } from './CaravanArrowP5';
+
+// Import suit icons
+import heartsIcon from '../assets/hearts.jpg';
+import diamondsIcon from '../assets/diamonds.jpg';
+import clubsIcon from '../assets/clubs.jpg';
+import spadesIcon from '../assets/spades.jpg';
+
+const suitIcons: Record<Suit, string> = {
+  hearts: heartsIcon,
+  diamonds: diamondsIcon,
+  clubs: clubsIcon,
+  spades: spadesIcon,
+};
+
+// Helper function to find active Queen's suit in caravan
+function getActiveQueenSuit(cards: Card[]): Suit | null {
+  for (const card of cards) {
+    if (card.attachments) {
+      for (const attachment of card.attachments) {
+        if (attachment.value === 'Q' && attachment.cardStatus === 'active') {
+          return attachment.suit as Suit;
+        }
+      }
+    }
+  }
+  return null;
+}
 
 type CaravanProps = {
   id: CaravanId;
@@ -22,6 +52,7 @@ type CaravanProps = {
   onTargetClick: (target: HoverTarget) => void;
   status: CaravanStatus;
   onDestroyAnimationComplete: () => void
+  onDiscardCaravan?: (caravanId: CaravanId) => void;
 };
 
 export const Caravan = ({
@@ -32,7 +63,8 @@ export const Caravan = ({
   onHoverTarget,
   onTargetClick,
   status,
-  onDestroyAnimationComplete
+  onDestroyAnimationComplete,
+  onDiscardCaravan
 }: CaravanProps) => {
   const caravanTarget: HoverTarget = {
     type: 'caravan',
@@ -54,6 +86,8 @@ export const Caravan = ({
     ? minHeight + (cards.length * cardSpacing)
     : 190; // Default height when empty
 
+  const activeQueenSuit = getActiveQueenSuit(cards);
+
   return (
     <div
       onMouseEnter={() => onHoverTarget(caravanTarget)}
@@ -71,6 +105,16 @@ export const Caravan = ({
         height: `${dynamicHeight}px`
       }}
     >
+      {caravanTarget.owner === 'player' && (
+        <Trash2 
+          className='relative right-8 w-6 overflow-visible
+                    cursor-pointer
+                    bg-amber-50 hover:bg-red-400
+                    p-1 rounded-full
+                    '
+          onClick={() => onDiscardCaravan? onDiscardCaravan(id) : ''}/>            
+      )}
+      
     <AnimatePresence>
       {cards.map((card, index) => {
         const displacement = getCardDisplacement(card.id);
@@ -158,6 +202,16 @@ export const Caravan = ({
       <CaravanArrowP5
         direction={getCaravanDirection(cards)}
       />
+      {/* Active Queen Suit Icon */}
+        {activeQueenSuit && (
+          <div className="caravan-queen-icon">
+            <img 
+              src={suitIcons[activeQueenSuit]} 
+              alt={activeQueenSuit}
+              className="queen-suit-icon"
+            />
+          </div>
+        )}
 
       {status === 'sold' && (
         <div className={`caravan-sold-label ${status}`}>Vendida</div>

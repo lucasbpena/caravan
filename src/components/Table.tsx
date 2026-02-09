@@ -17,9 +17,18 @@ type TableProps = {
   onHoverTarget: (target: HoverTarget | null) => void;
   onTargetClick: (target: HoverTarget) => void;
   onDestroyAnimationComplete: () => void;
+  onDiscardCaravan: (caravanId: CaravanId) => void;
 };
 
-export const Table = ({ game, playResult, hoverTarget, onHoverTarget, onTargetClick, onDestroyAnimationComplete }: TableProps) => {
+export const Table = ({ 
+    game, 
+    playResult, 
+    hoverTarget, 
+    onHoverTarget, 
+    onTargetClick, 
+    onDestroyAnimationComplete,
+    onDiscardCaravan
+ }: TableProps) => {
 
   const caravanStatuses: Record<CaravanId, CaravanStatus> = {} as Record<CaravanId, CaravanStatus>;
 
@@ -52,7 +61,7 @@ export const Table = ({ game, playResult, hoverTarget, onHoverTarget, onTargetCl
           onHoverTarget={onHoverTarget}
           onTargetClick={onTargetClick}
           status={caravanStatuses[id]}
-          onDestroyAnimationComplete={onDestroyAnimationComplete}
+          onDestroyAnimationComplete={onDestroyAnimationComplete}          
         />
 
         ))}
@@ -68,6 +77,7 @@ export const Table = ({ game, playResult, hoverTarget, onHoverTarget, onTargetCl
             onTargetClick={onTargetClick}
             status={caravanStatuses[id]}
             onDestroyAnimationComplete={onDestroyAnimationComplete}
+            onDiscardCaravan={onDiscardCaravan}
           />
         ))}
       </div>

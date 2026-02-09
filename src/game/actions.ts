@@ -91,6 +91,19 @@ export const gameActions = {
     card.cardStatus = 'entering'
     const [drawn, ...restDeck] = game[playerId].deck
 
+    // Deactivate all active Queens in the target caravan (new card becomes new suit)
+    const updatedCaravan = game.caravans[targetCaravanId].map(c => {
+      if (!c.attachments) return c;
+      
+      const updatedAttachments = c.attachments.map(att =>
+        att.value === 'Q' && att.cardStatus === 'active'
+          ? { ...att, cardStatus: 'attaching' as const }
+          : att
+      );
+      
+      return { ...c, attachments: updatedAttachments };
+    });
+
     return {
       ...game,
       [playerId]: {
@@ -100,7 +113,7 @@ export const gameActions = {
       },
       caravans: {
         ...game.caravans,
-        [targetCaravanId]: [...game.caravans[targetCaravanId], card,]
+        [targetCaravanId]: [...updatedCaravan, card,]  // <- Changed from game.caravans[targetCaravanId] to updatedCaravan
       },
     };
   },
@@ -113,6 +126,7 @@ export const gameActions = {
   ): GameState {
     const source = game[playerId].hand.find(c => c.id === sourceCardId);    
     if (!source) return game;
+
     source.cardStatus = 'attaching'
 
     const targetLoc = findCardLocation(game, targetCardId);
@@ -171,7 +185,45 @@ export const gameActions = {
             source
           ),
         };
-      } else {
+      // Queen: mark as 'active', deactivate all other Queens in the same caravan
+      } else if (source.value === 'Q') {
+        
+        source.cardStatus = 'active';
+        
+        return {
+          ...game,
+          [playerId]: {
+            ...game[playerId],
+            hand: [...hand, drawn],
+            deck: restDeck
+          },
+          caravans: {
+            ...game.caravans,
+            [targetCaravanId]: game.caravans[targetCaravanId as CaravanId].map(card => {
+              if (card.id === targetCardId) {
+                // Attach Queen to target card
+                return {
+                  ...card,
+                  attachments: [...(card.attachments ?? []), source],
+                };
+              } else {
+                // Deactivate any other Queens in this caravan
+                const updatedAttachments = card.attachments?.map(att => 
+                  att.value === 'Q' && att.cardStatus === 'active'
+                    ? { ...att, cardStatus: 'attaching' as const }
+                    : att
+                );
+                
+                return updatedAttachments 
+                  ? { ...card, attachments: updatedAttachments }
+                  : card;
+              }
+            }),
+          },
+        };
+      }   
+
+      else {
         return {
           ...game,
           [playerId]: {

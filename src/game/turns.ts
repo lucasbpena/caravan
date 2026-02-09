@@ -124,7 +124,13 @@ export function gameReducer(
   const phase = game.turn.phase;
 
   if (action) {
-    if (Object.hasOwn(allowedActions[phase], action.type)) return game
+    if (
+      action &&
+      !allowedActions[phase].includes(action.type)
+    ) {
+      return game;
+    }
+
 
     switch (action.type) {
 
@@ -204,6 +210,17 @@ export function gameReducer(
 
       return newGame;
     }
+
+    case 'DISCARD_CARAVAN': {
+
+      return advanceTurn({
+        ...game,
+        caravans: {
+          ...game.caravans,
+          [action.caravanId]: [],
+        },
+      }
+    )};
 
     default:
       return game;

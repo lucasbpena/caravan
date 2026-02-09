@@ -10,7 +10,8 @@ export type CardId = `${string}-${string}-${string}-${string}-${string}`
 export type CardStatus = 
 	| 'idle'	
 	| 'entering'
-	| 'attaching'	
+	| 'attaching'
+	| 'active'	
 	| 'destroying'
 	| 'dicarding';
 

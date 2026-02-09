@@ -79,6 +79,17 @@ export const getCaravanDirection = (cards: Card[]): boolean | null => {
 
 export const getCaravanSuit= (cards: Card[]): string | null => {
     if (cards.length === 0) return null;
+
+	// Check for Queen effects
+	for (const card of cards) {
+		if (card.attachments)
+		for (const attachment of card.attachments) {
+			if (attachment.value == 'Q' && attachment.cardStatus === 'active') {
+				return attachment.suit			
+			}
+		}
+	}
+
     return cards[cards.length - 1].suit;
 }
 

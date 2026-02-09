@@ -2,7 +2,7 @@ import './App.css'
 import floorBg from './assets/table2.jpg';
 import { useState, useReducer, useEffect } from 'react';
 
-import { type Card, createDeck } from './game/types';
+import { type CaravanId, type Card, createDeck } from './game/types';
 import { type PlayResult, gameRules } from './game/rules';
 import { type HoverTarget, gameActions } from './game/actions';
 import { type GameState, gameReducer, isGameOver } from './game/turns';
@@ -169,12 +169,17 @@ function App() {
 		setHoverTarget(null);
 	};
 
+	// Caravan discard handler
+	const handleCaravanDiscard = (caravanId: CaravanId) => {
+		dispatch({ type: 'DISCARD_CARAVAN', caravanId: caravanId });
+	}	
+
+	// Card removal animation Handler
 	const handleDestroyAnimationComplete = () => {
 		dispatch({ type: 'REMOVE_DESTROYED_CARDS' });
 	};
 
 	// Main App render
-	//style={{backgroundImage: `url(${floorBg})`}}
 	return (
 		<div 
 			className="
@@ -188,6 +193,7 @@ function App() {
 				overflow-x-hidden
 				isolate
 			"
+			//style={{backgroundImage: `url(${floorBg})`}}
 		>
 			{isOver && (
 				<GameEndBanner
@@ -208,6 +214,7 @@ function App() {
 							onHoverTarget={setHoverTarget}
 							onTargetClick={handlePlay}
 							onDestroyAnimationComplete={handleDestroyAnimationComplete}
+							onDiscardCaravan={handleCaravanDiscard}
 						/>
 						<Hand hand={game.player.hand} onCardSelect={setCardSel} cardSel={cardSel}/>
 					</div>

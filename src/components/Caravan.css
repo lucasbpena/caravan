@@ -401,3 +401,51 @@
   0%   { background-position: -60% 0; }
   100% { background-position: 160% 0; }
 }
+
+/* Active Queen Suit Icon */
+.caravan-queen-icon {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  
+  width: 40px;
+  height: 40px;
+  
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(153, 153, 153, 0.8);
+  border-radius: 8px;
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    0 0 12px rgba(255, 215, 0, 0.4);
+  
+  pointer-events: none;
+  z-index: 60;
+  
+  animation: queen-icon-glow 2s ease-in-out infinite;
+}
+
+.queen-suit-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+/* Subtle glow animation for the Queen icon */
+@keyframes queen-icon-glow {
+  0%, 100% {
+    box-shadow: 
+      0 2px 8px rgba(0, 0, 0, 0.3),
+      0 0 12px rgba(107, 255, 228, 0.4);
+  }
+  50% {
+    box-shadow: 
+      0 2px 12px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(29, 232, 255, 0.7);
+  }
+}
