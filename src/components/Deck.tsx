@@ -1,6 +1,6 @@
 import './Deck.css';
 
-import cardBack from '../assets/card-back1.png'
+import cardBackRed from '../assets/1800-cards/back-red.png';
 
 import { type HoverTarget } from '../game/actions';
 type DeckProps = {
@@ -13,7 +13,7 @@ export const Deck = ({ count, onTargetClick }: DeckProps) => {
   return (
     <div className="deck" onClick={() => onTargetClick(deckTarget)}>
       <img
-        src={cardBack}
+        src={cardBackRed}
         //className="card-face"
         draggable={false}
         className='deck-card'

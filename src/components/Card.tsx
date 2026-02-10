@@ -1,5 +1,6 @@
 import './Card.css';
-import cardBack from '../assets/card-back1.png'
+import cardBackRed from '../assets/1800-cards/back-red.png';
+import cardBackBlue from '../assets/1800-cards/back-blue.png'
 
 import type { Card } from '../game/types';
 
@@ -22,7 +23,7 @@ export function getCardDisplacement(id: string) {
 }
 
 // Import card images
-const cardModules = import.meta.glob('../assets/vector-cards/*', {
+const cardModules = import.meta.glob('../assets/1800-cards/*', {
   eager: true,
   as: 'url',
 });
@@ -76,7 +77,7 @@ export const CardView = ({
       <div className="card-root">
         <img
           src={
-            turned === true ? cardBack : cardPaths[`${card.value}_${card.suit}`]
+            turned === true ? cardBackBlue : cardPaths[`${card.value}_${card.suit}`]
           }
           className="card-face"
           draggable={false}
