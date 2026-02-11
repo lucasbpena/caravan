@@ -13,13 +13,17 @@ import { Table } from './components/Table'
 import { Hand } from './components/Hand'
 import { GameEndBanner } from './components/GameEndBanner';
 
+import { useSound } from './game/useSound';
+
 function App() {
 	
-	// React states
+	// Sounds hook
+	const { playSound, preloadAllSounds } = useSound();
+	// React states	
 	const [cardSel, setCardSel] = useState<Card | null>(null);
 	const [hoverTarget, setHoverTarget] = useState<HoverTarget | null>(null)	
 
-	// Setup reducer
+	// Setup game object
 	const initGame: GameState = {
 		turn: { currentPlayer: 'player', phase: 'setup', turnNumber: 1 },
 		player: { deck: [], hand: [], discardPile: [] },
@@ -29,7 +33,7 @@ function App() {
 			'e-1': [], 'e-2': [], 'e-3': [],
 		},		
 	};
-
+	// Setup game reducer
 	const [game, dispatch] = useReducer(
 		gameReducer,
 		initGame,
@@ -52,12 +56,13 @@ function App() {
 			return game;
 		}
 	);
-	
+	// Check if Game over
 	const isOver = isGameOver(game)
-
-	const onRestart = () => {
-		dispatch({ type: 'RESTART_GAME' });
-	}
+	
+	// Preload sounds
+	useEffect(() => {
+		preloadAllSounds();
+	}, [preloadAllSounds]);
 
 	// Process AI turn
 	useEffect(() => {
@@ -134,6 +139,8 @@ function App() {
 
 				if (!result?.allowed) return;
 
+				playSound('card-play');
+
 				dispatch({
 					type: 'PLAY_CARD_TO_CARAVAN',
 					cardSel,
@@ -169,7 +176,12 @@ function App() {
 		setHoverTarget(null);
 	};
 
-	// Caravan discard handler
+	// Restart handler
+	const onRestart = () => {
+		dispatch({ type: 'RESTART_GAME' });
+	}
+
+		// Caravan discard handler
 	const handleCaravanDiscard = (caravanId: CaravanId) => {
 		dispatch({ type: 'DISCARD_CARAVAN', caravanId: caravanId });
 	}	
