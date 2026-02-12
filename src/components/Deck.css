@@ -9,6 +9,7 @@
 .deck-card {
   background: linear-gradient(135deg, #333, #111);
   box-shadow: 0 4px 10px rgba(0,0,0,.6);
+  border-radius: 8px;
 }
 
 .deck-count {

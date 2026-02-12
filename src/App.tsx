@@ -1,19 +1,21 @@
 import './App.css'
-import floorBg from './assets/table2.jpg';
+
 import { useState, useReducer, useEffect } from 'react';
 
 import { type CaravanId, type Card, createDeck } from './game/types';
 import { type PlayResult, gameRules } from './game/rules';
 import { type HoverTarget, gameActions } from './game/actions';
 import { type GameState, gameReducer, isGameOver } from './game/turns';
+import { useSound } from './game/useSound';
 
 import { decideAiAction } from './ai/aiController';
 
 import { Table } from './components/Table'
 import { Hand } from './components/Hand'
 import { GameEndBanner } from './components/GameEndBanner';
+import { RulesOverlay } from './components/RulesOverlay';
 
-import { useSound } from './game/useSound';
+import background from './assets/wasteland2.jpeg';
 
 function App() {
 	
@@ -192,21 +194,15 @@ function App() {
 	};
 
 	// Main App render
-	return (
+	return (		
 		<div 
 			className="
-				relative
-				w-full
-				min-h-screen
-				bg-linear-to-br from-sky-50 via-sky-100 to-sky-200
-				flex
-				flex-col
-				items-center
-				overflow-x-hidden
-				isolate
+				game
 			"
-			//style={{backgroundImage: `url(${floorBg})`}}
+			style={{backgroundImage: `url(${background})`}}			
 		>
+			<RulesOverlay/>
+
 			{isOver && (
 				<GameEndBanner
 					result={isOver}

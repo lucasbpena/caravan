@@ -22,7 +22,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, auto);
-  gap: 140px 30px;
+  gap: 100px 30px;
   padding: 60px 0;
   align-items: end; /* Align all items to top of their grid cell */
 }
