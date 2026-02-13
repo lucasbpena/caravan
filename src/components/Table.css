@@ -1,20 +1,9 @@
-.table-background {
-  background-image: url('../assets/table2.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-	border-width: 10px;
-	border-color: rgb(75, 60, 48);
-	border-radius: 10px;
-	width: 900;
-}
-
 .table-wrapper {
   width: 900px;          /* MUST match visual table */
   margin: 0 auto;         /* center horizontally */
   padding: 0px 0px;     /* inner breathing room */
   display: flex;
-  justify-content: center;
+  justify-content: center;  
 }
 
 .table-grid {
@@ -22,19 +11,19 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, auto);
-  gap: 100px 30px;
-  padding: 60px 0;
-  align-items: end; /* Align all items to top of their grid cell */
+  gap: 10px 20px;
+  padding: 20px 0;  
+  
 }
 
 .table-grid > :nth-child(n+4) {
   align-self: start; /* Player caravans (4-6) align to bottom */
 }
+
 .table-side {
-  width: 100px;
+  width: 80px;
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   grid-template-rows: repeat(2, auto);
   gap: 140px 30px;
-  padding: 60px 0;
 }

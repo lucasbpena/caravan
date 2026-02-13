@@ -10,18 +10,18 @@ export function RulesOverlay() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="
-          fixed top-6 left-6 z-50
+          absolute top-25 left-4 z-50
           bg-amber-200 hover:bg-amber-700
 					cursor-pointer
-          text-zinc-400
-          p-3 rounded-full
+          text-zinc-800
+          p-2 rounded-full
           shadow-2xl
           transition-all duration-300
           hover:scale-110
         "
         aria-label="Toggle game rules"
       >
-        <BookOpen className="w-8 h-8" />
+        <BookOpen className="w-6 h-6" />
       </button>
 
       {/* Overlay */}

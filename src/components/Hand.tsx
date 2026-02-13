@@ -23,9 +23,9 @@ export const Hand = ({ hand, onCardSelect, cardSel, turned=false }: HandProps) =
     const depth = total - Math.abs(offset);
 
     return {
-      x: offset * 80,
-      y: isActive ? -50 : Math.abs(offset) * 6,
-      rotate: offset * 4,
+      x: offset * 60,
+      y: isActive ? -30 : 0,
+      
       zIndex: 100 + depth,
     };
   }

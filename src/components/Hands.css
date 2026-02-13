@@ -1,7 +1,7 @@
 .hand {
   position: relative;
   pointer-events: auto;
-  height: 200px;
+  top: -40px;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -9,5 +9,6 @@
 
 .hand.rotate {
   transform: rotate(180deg);
-
+  right: -100px;
+  top: 40px;
 }

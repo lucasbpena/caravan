@@ -82,7 +82,11 @@ export const Table = ({
         ))}
       </div>
         <div className="table-side">
-          <div/>
+          <Deck
+            count={game.enemy.deck.length}
+            onTargetClick={onTargetClick}
+            blue={true}
+          />
           <Deck
             count={game.player.deck.length}
             onTargetClick={onTargetClick}

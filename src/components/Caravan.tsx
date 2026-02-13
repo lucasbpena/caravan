@@ -80,11 +80,11 @@ export const Caravan = ({
 
   // Calculate dynamic height based on number of cards
   // Base height for empty caravan (80px) + spacing for each card (36px per card)
-  const minHeight = 150; // Minimum clickable area at bottom
-  const cardSpacing = 40;
+  const minHeight = 120; // Minimum clickable area at bottom
+  const cardSpacing = 20;
   const dynamicHeight = cards.length > 0 
     ? minHeight + (cards.length * cardSpacing)
-    : 190; // Default height when empty
+    : 100; // Default height when empty
 
   const activeQueenSuit = getActiveQueenSuit(cards);
 
@@ -107,8 +107,9 @@ export const Caravan = ({
     >
       {caravanTarget.owner === 'player' && (
         <Trash2 
-          className='relative right-8 w-6 overflow-visible
+          className='relative right-8 top-8 w-5 overflow-visible
                     cursor-pointer
+                    text-zinc-800
                     bg-amber-50 hover:bg-red-400
                     p-1 rounded-full
                     '
@@ -137,8 +138,8 @@ export const Caravan = ({
             key={card.id}
             className="caravan-card"
             style={{
-              top: index * 36,
-              zIndex: index + 20,
+              top: index * 20,
+              zIndex: index + 10,
               position: 'absolute',
             }}
             animate={{

@@ -1,5 +1,4 @@
 import './App.css'
-
 import { useState, useReducer, useEffect } from 'react';
 
 import { type CaravanId, type Card, createDeck } from './game/types';
@@ -15,12 +14,16 @@ import { Hand } from './components/Hand'
 import { GameEndBanner } from './components/GameEndBanner';
 import { RulesOverlay } from './components/RulesOverlay';
 
-import background from './assets/wasteland2.jpeg';
+import videoBackground from './assets/background.webm';
 
 function App() {
 	
 	// Sounds hook
 	const { playSound, preloadAllSounds } = useSound();
+	
+	// Video hook
+	const [videoLoaded, setVideoLoaded] = useState(false);
+
 	// React states	
 	const [cardSel, setCardSel] = useState<Card | null>(null);
 	const [hoverTarget, setHoverTarget] = useState<HoverTarget | null>(null)	
@@ -35,6 +38,7 @@ function App() {
 			'e-1': [], 'e-2': [], 'e-3': [],
 		},		
 	};
+	
 	// Setup game reducer
 	const [game, dispatch] = useReducer(
 		gameReducer,
@@ -58,6 +62,7 @@ function App() {
 			return game;
 		}
 	);
+	
 	// Check if Game over
 	const isOver = isGameOver(game)
 	
@@ -79,35 +84,25 @@ function App() {
 		return () => clearTimeout(timeout);
 	}, [game.turn, game]);
 
-
 	// Playability check
 	const getPlayability = (target: HoverTarget | null): PlayResult | null => {
-		// If no selection
 		if (!cardSel) return null;
-
-		if (game.turn.currentPlayer !== 'player') {			
-			return null
-		}
+		if (game.turn.currentPlayer !== 'player') return null;
 
 		switch (target?.type) {
 			case 'caravan':
-				// if not player caravans
-				if (target.caravanId[0] !== 'p') {
-					return null
-				}
+				if (target.caravanId[0] !== 'p') return null;
 
 				if (game.turn.phase === 'setup') {
 					return gameRules.canPlayCaravanSetup(
 						cardSel,
-					game.caravans[target.caravanId]
-				)
-
+						game.caravans[target.caravanId]
+					)
 				} else {
 					return gameRules.canPlayToCaravan(
 						cardSel,
 						game.caravans[target.caravanId]
 					);
-
 				}
 				
 			case 'placed':
@@ -123,14 +118,13 @@ function App() {
 		if (!cardSel) return;
 
 		switch (target.type) {
-
 			case 'deck': {
 				dispatch({
 					type: 'DISCARD_DRAW',
 					cardSel: cardSel,
 					playerId: 'player'
 				})
-				break
+				break;
 			}	
 
 			case 'caravan': {
@@ -173,7 +167,6 @@ function App() {
 				return;
 		}
 		
-		// cleanup after successful play
 		setCardSel(null);
 		setHoverTarget(null);
 	};
@@ -183,7 +176,7 @@ function App() {
 		dispatch({ type: 'RESTART_GAME' });
 	}
 
-		// Caravan discard handler
+	// Caravan discard handler
 	const handleCaravanDiscard = (caravanId: CaravanId) => {
 		dispatch({ type: 'DISCARD_CARAVAN', caravanId: caravanId });
 	}	
@@ -195,14 +188,30 @@ function App() {
 
 	// Main App render
 	return (		
-		<div 
-			className="
-				game
-			"
-			style={{backgroundImage: `url(${background})`}}			
-		>
-			<RulesOverlay/>
+		<div className="game">
+			{/* Video Background */}
+			<video
+				autoPlay
+				loop
+				muted
+				playsInline
+				onLoadedData={() => setVideoLoaded(true)}
+				className={`
+					transition-opacity duration-1000
+					${videoLoaded ? 'opacity-100' : 'opacity-0'}
+				`}
+			>
+				<source src={videoBackground} type="video/webm" />
+				<source src={videoBackground.replace('.webm', '.mp4')} type="video/mp4" />
+			</video>
+			
+			{/* Title */}
+			<h1 className='title-text'>Caravana</h1>
+			
+			{/* Rules Overlay */}
+			<RulesOverlay />
 
+			{/* Game End Banner */}
 			{isOver && (
 				<GameEndBanner
 					result={isOver}
@@ -210,24 +219,41 @@ function App() {
 				/>
 			)}
 
-			{/* Game */}	
-			<h1 className='title-text pl-20'>OCaravana</h1>
-			<div className="game">															
-				<div>
-						<Hand hand={game.enemy.hand} onCardSelect={setCardSel} cardSel={cardSel} turned={true}/>
-						<Table 
-							game={game} 
-							playResult={getPlayability(hoverTarget)}
-							hoverTarget={hoverTarget}
-							onHoverTarget={setHoverTarget}
-							onTargetClick={handlePlay}
-							onDestroyAnimationComplete={handleDestroyAnimationComplete}
-							onDiscardCaravan={handleCaravanDiscard}
-						/>
-						<Hand hand={game.player.hand} onCardSelect={setCardSel} cardSel={cardSel}/>
-					</div>
+			{/* Game Content - IMPROVED STRUCTURE */}
+			<div className="game-content">
+				{/* Enemy Hand */}
+				<div className="enemy-hand">
+					<Hand 
+						hand={game.enemy.hand} 
+						onCardSelect={setCardSel} 
+						cardSel={cardSel} 
+						turned={true}
+					/>
+				</div>
+
+				{/* Table Area */}
+				<div className="table-area">
+					<Table 
+						game={game} 
+						playResult={getPlayability(hoverTarget)}
+						hoverTarget={hoverTarget}
+						onHoverTarget={setHoverTarget}
+						onTargetClick={handlePlay}
+						onDestroyAnimationComplete={handleDestroyAnimationComplete}
+						onDiscardCaravan={handleCaravanDiscard}
+					/>
+				</div>
+
+				{/* Player Hand */}
+				<div className="player-hand">
+					<Hand 
+						hand={game.player.hand} 
+						onCardSelect={setCardSel} 
+						cardSel={cardSel}
+					/>
 				</div>
 			</div>
+		</div>
 	)
 };
 
