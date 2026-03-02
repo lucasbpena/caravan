@@ -29,7 +29,7 @@ export function CaravanArrowP5({ direction }: CaravanArrowP5Props) {
 
         // Visual properties
         const isUp = direction === true;
-        const color = isUp ? [71, 155, 219] : [233, 137, 53]; // Green for up, Red for down
+        const color = isUp ? [2, 108, 124] : [216, 30, 91];
         const alpha = Math.sin(progress * Math.PI) * 255; // Fade in/out loop
 
         // Movement range
@@ -42,8 +42,8 @@ export function CaravanArrowP5({ direction }: CaravanArrowP5Props) {
 
         // Add Glow effect using Canvas shadow
         const ctx = (p as any).drawingContext;
-        ctx.shadowBlur = 2;
-        ctx.shadowColor = `rgba(${color[0]}, ${color[1]}, ${color[2]}, 1)`;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = `white`;
 
         p.fill(color[0], color[1], color[2], alpha);
 

@@ -1,13 +1,22 @@
+import React from "react";
 import { type PlayerId } from "../game/turns";
 
 
 type Props = {
   result: PlayerId;
   onRestart: () => void;
+  playSound?: (soundName: 'victory' | 'defeat', volume?: number) => void;
 };
 
-export function GameEndBanner({ result, onRestart }: { result: PlayerId; onRestart: () => void }) {
+export function GameEndBanner({ result, onRestart, playSound }: Props) {
   const isVictory = result === 'player';
+  
+  // Play sound when banner appears
+  React.useEffect(() => {
+    if (playSound) {
+      playSound(isVictory ? 'victory' : 'defeat', 0.7);
+    }
+  }, [isVictory, playSound]);
   
   return (
     <>
@@ -47,7 +56,7 @@ export function GameEndBanner({ result, onRestart }: { result: PlayerId; onResta
         <div className="flex flex-col items-center gap-6">
           {/* Icon */}
           <div className="text-white text-7xl font-black">
-            {isVictory ? '👑' : '💀'}
+            {isVictory ? 'ðŸ‘‘' : 'ðŸ’€'}
           </div>
           
           {/* Text */}
@@ -69,7 +78,7 @@ export function GameEndBanner({ result, onRestart }: { result: PlayerId; onResta
               cursor-pointer
             "
           >
-            🔄 Play again
+            ðŸ”„ Play again
           </button>
         </div>
       </div>

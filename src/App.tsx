@@ -1,11 +1,11 @@
 import './App.css'
-import { useState, useReducer, useEffect } from 'react';
+import { useState, useReducer, useEffect, useRef, useCallback } from 'react';
 
 import { type CaravanId, type Card, createDeck } from './game/types';
 import { type PlayResult, gameRules } from './game/rules';
 import { type HoverTarget, gameActions } from './game/actions';
 import { type GameState, gameReducer, isGameOver } from './game/turns';
-import { useSound } from './game/useSound';
+import { useSound, type SoundName } from './game/useSound';
 
 import { decideAiAction } from './ai/aiController';
 
@@ -13,11 +13,16 @@ import { Table } from './components/Table'
 import { Hand } from './components/Hand'
 import { GameEndBanner } from './components/GameEndBanner';
 import { RulesOverlay } from './components/RulesOverlay';
+import { PlayFeedback } from './components/PlayFeedback';
 
 import videoBackground from './assets/background.webm';
 
 function App() {
 	
+	// Tooltip states
+	const [cursorPos, setCursorPos] = useState<{ x: number; y: number } | null>(null);
+	const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)	
+
 	// Sounds hook
 	const { playSound, preloadAllSounds } = useSound();
 	
@@ -66,10 +71,43 @@ function App() {
 	// Check if Game over
 	const isOver = isGameOver(game)
 	
+	// AI Sound Dict
+	const aiSoundDict: Record<string, string> = {
+		'PLAY_CARD_TO_CARAVAN': 'card-play',
+		'ATTACH_CARD': 'card-attach',
+		'DISCARD_DRAW': 'card-play',
+	}
+
 	// Preload sounds
 	useEffect(() => {
 		preloadAllSounds();
-	}, [preloadAllSounds]);
+	}, [preloadAllSounds]);	
+
+	// Track cursor position
+	useEffect(() => {
+		const handleMouseMove = (e: MouseEvent) => {
+			setCursorPos({ x: e.clientX, y: e.clientY });
+		};
+
+		window.addEventListener('mousemove', handleMouseMove);
+		return () => window.removeEventListener('mousemove', handleMouseMove);
+	}, []);
+
+	// Show feedback only when hover target changes
+	useEffect(() => {
+		// Clear feedback when no hover or no card selected
+		if (!hoverTarget || !cardSel) {
+			return;
+		}
+
+		// Check playability only when target changes
+		const result = getPlayability(hoverTarget);
+		
+		// Show feedback only if blocked
+		if (result && !result.allowed && result.reason) {
+			setFeedbackMessage(result.reason);
+		}
+	}, [hoverTarget]); // Only depend on hoverTarget changes
 
 	// Process AI turn
 	useEffect(() => {
@@ -81,23 +119,44 @@ function App() {
 			dispatch(action);
 		}, 300);
 
+		// Play AI sound
+		try {
+			if (!action?.type) return;
+
+			const sound = aiSoundDict[action.type as keyof typeof aiSoundDict];
+
+			if (!sound) return;
+
+			playSound(sound as SoundName);
+
+		} catch (err) {
+			console.warn('Erro ao processar som da ação:', err);
+		}
+
 		return () => clearTimeout(timeout);
 	}, [game.turn, game]);
 
-	// Playability check
+	// Playability check - NO STATE UPDATES HERE
 	const getPlayability = (target: HoverTarget | null): PlayResult | null => {
+		// If no selection
 		if (!cardSel) return null;
-		if (game.turn.currentPlayer !== 'player') return null;
+
+		if (game.turn.currentPlayer !== 'player') {			
+			return null
+		}
 
 		switch (target?.type) {
 			case 'caravan':
-				if (target.caravanId[0] !== 'p') return null;
+				// if not player caravans
+				if (target.caravanId[0] !== 'p') {
+					return null
+				}
 
 				if (game.turn.phase === 'setup') {
 					return gameRules.canPlayCaravanSetup(
 						cardSel,
 						game.caravans[target.caravanId]
-					)
+					);
 				} else {
 					return gameRules.canPlayToCaravan(
 						cardSel,
@@ -112,6 +171,22 @@ function App() {
 				return null;
 		}
 	};
+
+	// Show feedback when hovering over blocked targets
+	useEffect(() => {
+		if (!hoverTarget || !cardSel) {
+			setFeedbackMessage(null);
+			return;
+		}
+
+		const result = getPlayability(hoverTarget);
+		
+		if (result && !result.allowed && result.reason) {
+			setFeedbackMessage(result.reason);
+		} else {
+			setFeedbackMessage(null);
+		}
+	}, [hoverTarget, cardSel, game.caravans, game.turn.phase]);
 	
 	// Click handler
 	const handlePlay = (target: HoverTarget) => {
@@ -152,6 +227,8 @@ function App() {
 
 				if (!result?.allowed) return;
 
+				playSound('card-attach');
+
 				dispatch({
 					type: 'ATTACH_CARD',
 					cardSel,
@@ -181,10 +258,21 @@ function App() {
 		dispatch({ type: 'DISCARD_CARAVAN', caravanId: caravanId });
 	}	
 
-	// Card removal animation Handler
-	const handleDestroyAnimationComplete = () => {
-		dispatch({ type: 'REMOVE_DESTROYED_CARDS' });
-	};
+
+	// Card removal animation Handler with debouncing
+	const destroyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+	const handleDestroyAnimationComplete = useCallback(() => {
+		if (destroyTimeoutRef.current) {
+			clearTimeout(destroyTimeoutRef.current);
+		}
+		
+		destroyTimeoutRef.current = setTimeout(() => {
+			console.log('🗑️ Dispatching REMOVE_DESTROYED_CARDS');
+			dispatch({ type: 'REMOVE_DESTROYED_CARDS' });
+			destroyTimeoutRef.current = null;
+		}, 2500);
+	}, []);	
 
 	// Main App render
 	return (		
@@ -206,20 +294,30 @@ function App() {
 			</video>
 			
 			{/* Title */}
-			<h1 className='title-text'>Caravana</h1>
+			<h1 className='title-text'>
+				Caravana
+			</h1>							
 			
 			{/* Rules Overlay */}
 			<RulesOverlay />
 
 			{/* Game End Banner */}
-			{isOver && (
+			{isOver && (				
 				<GameEndBanner
 					result={isOver}
 					onRestart={onRestart}
+					playSound={playSound}
 				/>
 			)}
 
-			{/* Game Content - IMPROVED STRUCTURE */}
+			{/* Play Feedback Bubble */}
+			<PlayFeedback
+				message={feedbackMessage}
+				cursorPosition={cursorPos}
+				type="error"
+			/>
+
+			{/* Game */}
 			<div className="game-content">
 				{/* Enemy Hand */}
 				<div className="enemy-hand">
@@ -241,6 +339,7 @@ function App() {
 						onTargetClick={handlePlay}
 						onDestroyAnimationComplete={handleDestroyAnimationComplete}
 						onDiscardCaravan={handleCaravanDiscard}
+						playSound={playSound}
 					/>
 				</div>
 

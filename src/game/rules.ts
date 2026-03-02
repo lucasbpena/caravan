@@ -7,15 +7,18 @@ export type CaravanStatus = 'empty' | 'under' | 'sold' | 'contest' | 'overburden
 export function getCaravanScore(cards: Card[]) {
   let score = 0;
   for (const card of cards) {
-		let kingMultipliers = 0
+		// Skip cards that are being destroyed
+		if (card.cardStatus === 'destroying') {
+			continue;
+		}
 
 		// Check for King effects
+		let kingMultipliers = 0
 		if (card.attachments)
 		for (const attachment of card.attachments) {
 			if (attachment.value === 'K') {
 				kingMultipliers += 1
-			}
-	
+			}	
 		}
 		// Return score
 		// Calculate king effects on card if any
@@ -28,7 +31,7 @@ export function getCaravanScore(cards: Card[]) {
 		
 			// Add to score without effects
 		} else {
-	    score += card.value as number;  
+			score += card.value as number;  
 		}
   }
   return score;
@@ -51,7 +54,6 @@ export function getCaravanStatus(score: number, opposingScore: number): CaravanS
 		}		
 	}
 }
-
 
 export const getCaravanDirection = (cards: Card[]): boolean | null => {
 	// true ascending, false descending, null undefined
@@ -187,9 +189,9 @@ export function getLegalActions(
 
 // Game Rules
 export type PlayResult =
-  | { allowed: true }
+  | { allowed: true ; reason?: string}
   | { allowed: false; reason: string }
-  | {allowed: null};
+  | {allowed: null ; reason?: string};
 
 export const gameRules = {
 	

@@ -7,13 +7,13 @@
 }
 
 .table-grid {
-  width: 70%;
+  width: 65%;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, auto);
-  gap: 10px 20px;
-  padding: 20px 0;  
-  
+  gap: 20px 10px;
+  padding: 20px 0;
+  align-items: end;
 }
 
 .table-grid > :nth-child(n+4) {
@@ -21,9 +21,9 @@
 }
 
 .table-side {
-  width: 80px;
+  width: 10px;
   display: grid;
   grid-template-columns: repeat(1, 1fr);
   grid-template-rows: repeat(2, auto);
-  gap: 140px 30px;
+  gap: 10px 30px;
 }

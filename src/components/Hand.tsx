@@ -1,5 +1,5 @@
 import { motion, type MotionStyle } from 'framer-motion';
-import './Hands.css';
+import './Hand.css';
 
 import { CardView } from './Card';
 import type { Card } from '../game/types';
@@ -50,7 +50,7 @@ export const Hand = ({ hand, onCardSelect, cardSel, turned=false }: HandProps) =
               filter: { duration: 0.2 }
             }}
           >
-            <CardView card={card} onClick={() => onCardSelect(card)} turned={turned}/>
+            <CardView card={card} onClick={() => onCardSelect(card)} turned={turned} disableDisplacement={true} isPlayable={true} className='hand-card'/>
           </motion.div>          
         );
       })}

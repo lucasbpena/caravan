@@ -37,7 +37,7 @@ export type GameAction =
 
 const allowedActions: Record<GamePhase, GameAction['type'][]> = {
   setup: ['PLAY_CARD_TO_CARAVAN'],
-  main: ['PLAY_CARD_TO_CARAVAN', 'ATTACH_CARD', 'DISCARD_DRAW', 'DISCARD_CARAVAN'],
+  main: ['PLAY_CARD_TO_CARAVAN', 'ATTACH_CARD', 'DISCARD_DRAW', 'DISCARD_CARAVAN', 'REMOVE_DESTROYED_CARDS'],
   over: ['RESTART_GAME'],
 };
 
@@ -182,12 +182,20 @@ export function gameReducer(
     }
 
     case 'REMOVE_DESTROYED_CARDS': {
+      console.log("🗑️ CALLED DISPATCH REMOVED_DESTROYED_CARDS");
       return {
         ...game,
         caravans: Object.fromEntries(
           Object.entries(game.caravans).map(([id, cards]) => [
             id,
-            cards.filter(card => card.cardStatus !== 'destroying')
+            cards
+              .filter(card => card.cardStatus !== 'destroying')
+              .map(card => ({
+                ...card,
+                attachments: card.attachments?.filter(
+                  att => att.cardStatus !== 'destroying'
+                )
+              }))
           ])
         ) as Record<CaravanId, Card[]>
       };

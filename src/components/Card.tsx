@@ -1,8 +1,7 @@
 import './Card.css';
-import cardBackRed from '../assets/1800-cards/back-red.png';
 import cardBackBlue from '../assets/1800-cards/back-blue.png'
 
-import type { Card } from '../game/types';
+import { isFaceCard, type Card } from '../game/types';
 
 import { motion } from 'framer-motion';
 
@@ -45,6 +44,8 @@ type CardViewProps = {
   onClick?: () => void;
   onDestroyAnimationComplete?: () => void;
   turned?: boolean;
+  disableDisplacement?: boolean;
+  className?: string;
 };
 
 
@@ -52,29 +53,64 @@ export const CardView = ({
   card,
   onClick,
   onDestroyAnimationComplete,
-  turned
+  turned,
+  disableDisplacement = false,
+  className = ''
 }: CardViewProps) => {
+  const displacement = disableDisplacement 
+    ? { x: 0, y: 0, rotate: 0 } 
+    : getCardDisplacement(card.id);
+  
   return (
     <motion.div
-      className="card"
+      className={`card ${className}`}
       
       onClick={(e) => {
         e.stopPropagation();
         onClick?.();
       }}
+      initial={
+        card.cardStatus === 'entering'
+          ? { scale: 0.9, rotate: 0, opacity: 0.2, y: +26 }
+          : card.cardStatus === 'attaching' || isFaceCard(card)  
+          ? { scale: 1.1, rotate: 0, opacity: 0.2, x: +26 }
+          : {
+              x: displacement.x,
+              y: displacement.y,
+              rotate: displacement.rotate,
+            }
+      }
       animate={
         card.cardStatus === 'destroying'
-          ? { scale: 0.2, rotate: 20, opacity: 0 }
-          : { scale: 1, rotate: 0, opacity: 1 }
+          ? {
+            scale: [1, 1.1, 0.3],
+            opacity: [1, 0.8, 0],
+            filter: ["brightness(1)", "brightness(2)", "brightness(0)"],
+            rotate: [0, 5, 15]
+            }
+          : { 
+              scale: 1, 
+              rotate: displacement.rotate, 
+              opacity: 1, 
+              x: displacement.x,
+              y: displacement.y 
+            }
       }
-      transition={{ duration: 4, ease: 'easeInOut' }}
+      transition={{ 
+        duration: card.cardStatus === 'destroying' ? 3 : 0.3, 
+        ease: 'easeInOut' 
+      }}
       onAnimationComplete={() => {
         if (card.cardStatus === 'destroying') {
           onDestroyAnimationComplete?.();
         }
+        // Reset entering status after animation
+        if (card.cardStatus === 'entering') {
+          card.cardStatus = 'idle';
+        }
       }}
     >
-      <div className="card-root">
+      <div className={`card-root`}>
         <img
           src={
             turned === true ? cardBackBlue : cardPaths[`${card.value}_${card.suit}`]

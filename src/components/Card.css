@@ -11,8 +11,8 @@
 .card-face {
   width: 70px;
   display: block;
-  filter: saturate(0.92) contrast(0.98);
-  border-radius: 5px
+  filter: saturate(1) contrast(1.4);
+  border-radius: 4px
 }
 
 
@@ -31,7 +31,7 @@
 
 .attachment-face {
   width: 100%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+  box-shadow: 2px 2px rgba(0,0,0,0.4);
 }
 
 
@@ -59,8 +59,24 @@
 
 .card:hover{
   cursor: pointer;
-  box-shadow: #12ecc899 0 8px 12px ;
-  border-color: #12ecc899;
+  box-shadow: #12ec91ce 0 2px 2px ;
+  border-color: #12ec91ce;
+  border-radius: 6px;
+  border-width: 3px;
+}
+
+.card.playable{
+  cursor: pointer;
+  box-shadow: #12ec91ce 0 2px 2px ;
+  border-color: #12ec91ce;
+  border-radius: 6px;
+  border-width: 3px;
+}
+
+.card.blocked{
+  cursor: not-allowed;
+  box-shadow: #ec1212ce 0 2px 2px ;
+  border-color: #ec1212ce;
   border-radius: 6px;
   border-width: 3px;
 }
@@ -77,27 +93,4 @@
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-}
-
-
-
-.card-blocked {
-  cursor: not-allowed;
-}
-
-.card-blocked:hover {
-  box-shadow: #cf040499 0px 12px 36px ;
-  border-color: #d6070799;
-  border-radius: 8px;
-  border-width: 4px;
-}
-
-.card.blocked::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(188, 5, 5, 0.924);
-  backdrop-filter: brightness(0.7);
-  border-radius: 6px;
-  pointer-events: none;
 }

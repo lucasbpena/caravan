@@ -2,8 +2,10 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 import { Trash2 } from 'lucide-react';
 
+import { useRef, useEffect } from 'react';
+
 import './Caravan.css';
-import { CardView, getCardDisplacement } from './Card';
+import { CardView } from './Card';
 import { type Card, type CaravanId, type Suit } from '../game/types';
 import {
   getCaravanDirection,
@@ -17,10 +19,11 @@ import type { HoverTarget } from '../game/actions';
 import { CaravanArrowP5 } from './CaravanArrowP5';
 
 // Import suit icons
-import heartsIcon from '../assets/hearts.jpg';
-import diamondsIcon from '../assets/diamonds.jpg';
-import clubsIcon from '../assets/clubs.jpg';
-import spadesIcon from '../assets/spades.jpg';
+import heartsIcon from '../assets/hearts.png';
+import diamondsIcon from '../assets/diamonds.png';
+import clubsIcon from '../assets/clubs.png';
+import spadesIcon from '../assets/spades.png';
+import type { SoundName } from '../game/useSound';
 
 const suitIcons: Record<Suit, string> = {
   hearts: heartsIcon,
@@ -53,6 +56,8 @@ type CaravanProps = {
   status: CaravanStatus;
   onDestroyAnimationComplete: () => void
   onDiscardCaravan?: (caravanId: CaravanId) => void;
+  playSound?: (soundName: SoundName, volume?: number) => void;
+
 };
 
 export const Caravan = ({
@@ -64,8 +69,38 @@ export const Caravan = ({
   onTargetClick,
   status,
   onDestroyAnimationComplete,
-  onDiscardCaravan
+  onDiscardCaravan,
+  playSound
 }: CaravanProps) => {
+
+   // Ref para guardar o status anterior
+  const previousStatus = useRef<CaravanStatus>(status);
+
+  // useEffect para detectar mudanças de status
+  useEffect(() => {
+    // Verifica se o status mudou
+    if (previousStatus.current !== status) {
+      // Tocar som baseado no novo status
+      if (playSound) {
+        switch (status) {
+          case 'sold':
+            playSound('caravan-sold', 0.7);
+            break;
+          case 'overburden':
+            playSound('caravan-overburden', 0.6);
+            break;
+          case 'contest':
+            playSound('caravan-contest', 0.5);
+            break;
+          // Não tocar som para 'empty' ou 'under'
+        }
+      }
+
+      // Atualiza o status anterior
+      previousStatus.current = status;
+    }
+  }, [status, playSound]);
+  
   const caravanTarget: HoverTarget = {
     type: 'caravan',
     owner: id[0] === 'p' ? 'player' : 'enemy',
@@ -80,7 +115,7 @@ export const Caravan = ({
 
   // Calculate dynamic height based on number of cards
   // Base height for empty caravan (80px) + spacing for each card (36px per card)
-  const minHeight = 120; // Minimum clickable area at bottom
+  const minHeight = 130; // Minimum clickable area at bottom
   const cardSpacing = 20;
   const dynamicHeight = cards.length > 0 
     ? minHeight + (cards.length * cardSpacing)
@@ -95,21 +130,24 @@ export const Caravan = ({
       onClick={() => {
         if (isPlayable) onTargetClick(caravanTarget);
       }}
-      className={`
+      className={
+        cards.length === 0 ? `caravan ${caravanTarget.owner === 'enemy' ? 'enemy' : 'empty'} ${isHovered && !isPlayable ? 'caravan-blocked' : ''} ${isPlayable ? 'caravan-playable' : ''}` :
+        `       
         caravan ${status}
         ${caravanTarget.owner === 'enemy' ? 'enemy' : ''}
         ${isHovered && !isPlayable ? 'caravan-blocked' : ''}
         ${isPlayable ? 'caravan-playable' : ''}
       `}
+      
       style={{
-        height: `${dynamicHeight}px`
+        height: `${dynamicHeight}px`        
       }}
     >
       {caravanTarget.owner === 'player' && (
         <Trash2 
           className='relative right-8 top-8 w-5 overflow-visible
                     cursor-pointer
-                    text-zinc-800
+                    text-red-800
                     bg-amber-50 hover:bg-red-400
                     p-1 rounded-full
                     '
@@ -118,7 +156,6 @@ export const Caravan = ({
       
     <AnimatePresence>
       {cards.map((card, index) => {
-        const displacement = getCardDisplacement(card.id);
 
         const cardTarget: HoverTarget = {
           type: 'placed',
@@ -138,14 +175,15 @@ export const Caravan = ({
             key={card.id}
             className="caravan-card"
             style={{
-              top: index * 20,
-              zIndex: index + 10,
+              zIndex: index + 20,
               position: 'absolute',
             }}
+            initial={{
+              top: index * 20,
+            }}
             animate={{
-              x: displacement.x + (isCardHovered ? 28 : 0),
-              y: displacement.y,
-              rotate: displacement.rotate,
+              top: index * 20,
+              x: canAttach ? 12 : 0,
             }}
             transition={{
               type: 'spring',
@@ -169,11 +207,12 @@ export const Caravan = ({
                   owner: caravanTarget.owner,
                   card,
                 })
-              }
+              }              
               onDestroyAnimationComplete={onDestroyAnimationComplete}
+              className={isCardHovered ? canAttach ?'playable' : 'blocked' : ''}
             />
 
-            {/* ATTACHMENTS â€” PURELY VISUAL */}
+            {/* ATTACHMENTS */}
             
             {card.attachments?.map((attachment, i) => (
               <div
@@ -182,12 +221,15 @@ export const Caravan = ({
                 style={{
                   position: 'absolute',
                   top: 10,
-                  left: 25 + i * 18,
+                  left: 26 + i * 12,
                   zIndex: 40 + i,
                   pointerEvents: 'none',                  
                 }}
               >
-                <CardView card={attachment} />
+                <CardView 
+                  card={attachment} 
+                  onDestroyAnimationComplete={onDestroyAnimationComplete}
+                />
               </div>
             )
             )}
@@ -196,7 +238,7 @@ export const Caravan = ({
       })}
       </AnimatePresence>
 
-      <div className={`caravan-score ${caravanTarget.owner === 'enemy' ? 'rotate' : ''} ${status}`}>
+      <div className={`caravan score ${caravanTarget.owner === 'enemy' ? 'rotate' : ''} ${status}`}>
         {getCaravanScore(cards)}
       </div>
 
@@ -215,15 +257,15 @@ export const Caravan = ({
         )}
 
       {status === 'sold' && (
-        <div className={`caravan-sold-label ${status}`}>Vendida</div>
+        <div className={`caravan sold label ${status} ${caravanTarget.owner === 'enemy' ? 'rotate' : ''}`}>Vendida</div>
       )}
       {status === 'overburden' && (
-        <div className={`caravan-overburden-label ${status}`}>
+        <div className={`caravan overburden label ${status} ${caravanTarget.owner === 'enemy' ? 'rotate' : ''}`}>
           Sobrecarregada
         </div>
       )}
       {status === 'contest' && (
-        <div className={`caravan-contest-label ${status}`}>
+        <div className={`caravan contest label ${status} ${caravanTarget.owner === 'enemy' ? 'rotate' : ''}`}>
           Contestada
         </div>
       )}

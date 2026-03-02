@@ -7,7 +7,8 @@ import { getCaravanScore, getCaravanStatus, type CaravanStatus, type PlayResult 
 
 import { Caravan } from './Caravan';
 import { Deck } from './Deck';
-import { DiscardPile } from './Discard';
+//import { DiscardPile } from './Discard';
+import type { SoundName } from '../game/useSound';
 
 
 type TableProps = {
@@ -18,6 +19,7 @@ type TableProps = {
   onTargetClick: (target: HoverTarget) => void;
   onDestroyAnimationComplete: () => void;
   onDiscardCaravan: (caravanId: CaravanId) => void;
+  playSound?: (soundName: SoundName, volume?: number) => void;
 };
 
 export const Table = ({ 
@@ -27,7 +29,9 @@ export const Table = ({
     onHoverTarget, 
     onTargetClick, 
     onDestroyAnimationComplete,
-    onDiscardCaravan
+    onDiscardCaravan,
+    playSound
+
  }: TableProps) => {
 
   const caravanStatuses: Record<CaravanId, CaravanStatus> = {} as Record<CaravanId, CaravanStatus>;
@@ -45,8 +49,7 @@ export const Table = ({
       getCaravanScore(game.caravans[enemyId]), 
       getCaravanScore(game.caravans[playerId])
     );
-}
-
+  } 
 
   return (
     <div className="table-wrapper">
@@ -62,6 +65,7 @@ export const Table = ({
           onTargetClick={onTargetClick}
           status={caravanStatuses[id]}
           onDestroyAnimationComplete={onDestroyAnimationComplete}          
+          playSound={playSound}
         />
 
         ))}
@@ -78,6 +82,7 @@ export const Table = ({
             status={caravanStatuses[id]}
             onDestroyAnimationComplete={onDestroyAnimationComplete}
             onDiscardCaravan={onDiscardCaravan}
+            playSound={playSound}
           />
         ))}
       </div>
